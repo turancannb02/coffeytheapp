@@ -1,4 +1,8 @@
 {
   "name": "CoffeyTheApp",
-  "displayName": "CoffeyTheApp"
+  "displayName": "CoffeyTheApp",
+  "expo": {
+    "name": "CoffeyTheApp",
+    "slug": "CoffeyTheApp"
+  }
 }
