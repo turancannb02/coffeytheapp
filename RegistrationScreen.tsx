@@ -7,8 +7,6 @@ import {
   StyleSheet,
   ScrollView,
   Platform,
-  Modal,
-  Button,
 } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -19,11 +17,10 @@ const RegistrationScreen = ({navigation}) => {
   const [gender, setGender] = useState('');
   const [status, setStatus] = useState('');
   const [sexualInterest, setSexualInterest] = useState('');
+  const [intension, setIntension] = useState('');
   const [birthday, setBirthday] = useState(new Date());
-  const [birthTime, setBirthTime] = useState(new Date());
   const [isFormValid, setIsFormValid] = useState(false);
-  const [datePickerVisible, setDatePickerVisible] = useState(false);
-  const [timePickerVisible, setTimePickerVisible] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false); // State to control visibility of the DatePicker
 
   const checkFormValidity = () => {
     setIsFormValid(
@@ -31,22 +28,19 @@ const RegistrationScreen = ({navigation}) => {
     );
   };
 
+  // Handle date change
   const handleDateChange = (event, selectedDate) => {
     const currentDate = selectedDate || birthday;
     setBirthday(currentDate);
-    setDatePickerVisible(Platform.OS === 'ios'); // Ensures the picker disappears after selection on Android
-  };
-
-  const handleTimeChange = (event, selectedTime) => {
-    const currentTime = selectedTime || birthTime;
-    setBirthTime(currentTime);
-    setTimePickerVisible(Platform.OS === 'ios'); // Ensures the picker disappears after selection on Android
+    setShowDatePicker(false); // Hide picker after selection
   };
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.form}>
         <Text style={styles.header}>Kişisel Bilgiler</Text>
+
+        <Text style={styles.label}>İsim</Text>
         <TextInput
           style={styles.input}
           placeholder="İsim"
@@ -56,6 +50,8 @@ const RegistrationScreen = ({navigation}) => {
             checkFormValidity();
           }}
         />
+
+        <Text style={styles.label}>Yaş</Text>
         <TextInput
           style={styles.input}
           placeholder="Yaş"
@@ -67,6 +63,24 @@ const RegistrationScreen = ({navigation}) => {
           }}
         />
 
+        <Text style={styles.label}>Doğum Tarihi</Text>
+        <TouchableOpacity
+          onPress={() => setShowDatePicker(true)}
+          style={styles.datePickerButton}>
+          <Text>{birthday.toLocaleDateString()}</Text>
+        </TouchableOpacity>
+        {showDatePicker && (
+          <DateTimePicker
+            testID="dateTimePicker"
+            value={birthday}
+            mode="date"
+            display="default"
+            onChange={handleDateChange}
+            maximumDate={new Date()}
+          />
+        )}
+
+        <Text style={styles.label}>Cinsiyet</Text>
         <RNPickerSelect
           style={pickerSelectStyles}
           onValueChange={value => {
@@ -80,11 +94,10 @@ const RegistrationScreen = ({navigation}) => {
           placeholder={{label: 'Cinsiyet Seçin', value: null}}
         />
 
+        <Text style={styles.label}>İlişki Durumu</Text>
         <RNPickerSelect
           style={pickerSelectStyles}
-          onValueChange={value => {
-            setStatus(value);
-          }}
+          onValueChange={value => setStatus(value)}
           items={[
             {label: 'Bekar', value: 'Bekar'},
             {label: 'Evli', value: 'Evli'},
@@ -92,13 +105,13 @@ const RegistrationScreen = ({navigation}) => {
             {label: 'Karmaşık', value: 'Karmaşık'},
             {label: 'Diğer', value: 'Diğer'},
           ]}
-          placeholder={{label: 'Durum Seçin', value: null}}
+          placeholder={{label: 'İlişki Durumunuzu Seçin', value: null}}
         />
-
+        <Text style={styles.label}>İlgi Alanı</Text>
         <RNPickerSelect
           style={pickerSelectStyles}
           onValueChange={value => {
-            setGender(value);
+            setSexualInterest(value);
           }}
           items={[
             {label: 'Erkek', value: 'Erkek'},
@@ -107,11 +120,11 @@ const RegistrationScreen = ({navigation}) => {
           ]}
           placeholder={{label: 'İlgi Alanınızı Seçin', value: null}}
         />
-
+        <Text style={styles.label}>Falın Amacı</Text>
         <RNPickerSelect
           style={pickerSelectStyles}
           onValueChange={value => {
-            setSexualInterest(value);
+            setIntension(value);
           }}
           items={[
             {label: 'Aşk', value: 'Aşk'},
@@ -122,80 +135,13 @@ const RegistrationScreen = ({navigation}) => {
         />
 
         <TouchableOpacity
-          style={[styles.button, styles.buttonActive]}
-          onPress={() => setDatePickerVisible(true)}>
-          <Text style={styles.buttonText}>Doğum Tarihi Seç</Text>
-        </TouchableOpacity>
-        <Text
-          style={
-            styles.dateDisplay
-          }>{`Seçilen Tarih: ${birthday.toLocaleDateString()}`}</Text>
-
-        <TouchableOpacity
-          style={[styles.button, styles.buttonActive]}
-          onPress={() => setTimePickerVisible(true)}>
-          <Text style={styles.buttonText}>Doğum Saati Seç</Text>
-        </TouchableOpacity>
-        <Text
-          style={
-            styles.dateDisplay
-          }>{`Seçilen Saat: ${birthTime.toLocaleTimeString()}`}</Text>
-
-        {datePickerVisible && (
-          <Modal
-            transparent={true}
-            animationType="slide"
-            visible={datePickerVisible}>
-            <View style={styles.centeredView}>
-              <View style={styles.modalView}>
-                <DateTimePicker
-                  testID="dateTimePicker"
-                  value={birthday}
-                  mode="date"
-                  display="spinner"
-                  onChange={handleDateChange}
-                />
-                <Button
-                  title="Tamam"
-                  onPress={() => setDatePickerVisible(false)}
-                />
-              </View>
-            </View>
-          </Modal>
-        )}
-
-        {timePickerVisible && (
-          <Modal
-            transparent={true}
-            animationType="slide"
-            visible={timePickerVisible}>
-            <View style={styles.centeredView}>
-              <View style={styles.modalView}>
-                <DateTimePicker
-                  testID="timePicker"
-                  value={birthTime}
-                  mode="time"
-                  display="spinner"
-                  is24Hour={true}
-                  onChange={handleTimeChange}
-                />
-                <Button
-                  title="Tamam"
-                  onPress={() => setTimePickerVisible(false)}
-                />
-              </View>
-            </View>
-          </Modal>
-        )}
-
-        <TouchableOpacity
           style={[
             styles.button,
             isFormValid ? styles.buttonActive : styles.buttonInactive,
           ]}
           onPress={() => {
             if (isFormValid) {
-              navigation.navigate('NextScreen');
+              navigation.navigate('Main', {userName: name});
             }
           }}
           disabled={!isFormValid}>
@@ -213,13 +159,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#fcf4e4',
   },
   form: {
-    marginTop: 20,
+    marginTop: 70,
   },
   header: {
-    fontSize: 24,
+    fontSize: 36,
     fontWeight: 'bold',
     marginBottom: 20,
-    textAlign: 'center',
+    textAlign: 'left',
+    color: '#8a4412',
+  },
+  label: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#8a4412',
+    marginBottom: 5,
   },
   input: {
     backgroundColor: 'white',
@@ -230,6 +183,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ccc',
   },
+  datePicker: {
+    marginBottom: 20,
+    backgroundColor: '#fcf4e4',
+    borderRadius: 24,
+    alignSelf: 'flex-start',
+  },
+  datePickerButton: {
+    // Style for the button that triggers the DatePicker
+    backgroundColor: 'white',
+    padding: 10,
+    borderRadius: 10,
+    marginBottom: 15,
+  },
   button: {
     padding: 12,
     borderRadius: 10,
@@ -239,6 +205,7 @@ const styles = StyleSheet.create({
   buttonText: {
     color: 'white',
     fontSize: 16,
+    fontWeight: 'bold',
   },
   buttonActive: {
     backgroundColor: '#88400d',
@@ -246,41 +213,16 @@ const styles = StyleSheet.create({
   buttonInactive: {
     backgroundColor: '#ccc',
   },
-  centeredView: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalView: {
-    backgroundColor: 'white',
-    borderRadius: 20,
-    padding: 35,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  dateDisplay: {
-    fontSize: 16,
-    marginBottom: 10,
-    textAlign: 'center',
-    color: 'black',
-  },
 });
 
 const pickerSelectStyles = {
   inputIOS: {
     fontSize: 16,
-    paddingVertical: 12,
+    paddingVertical: 8,
     paddingHorizontal: 10,
-    borderWidth: 1,
+    borderWidth: 0.5,
     borderColor: 'gray',
-    borderRadius: 4,
+    borderRadius: 30,
     color: 'black',
     paddingRight: 30,
     backgroundColor: 'white',
@@ -291,8 +233,8 @@ const pickerSelectStyles = {
     paddingHorizontal: 10,
     paddingVertical: 8,
     borderWidth: 0.5,
-    borderColor: 'purple',
-    borderRadius: 8,
+    borderColor: 'gray',
+    borderRadius: 30,
     color: 'black',
     paddingRight: 30,
     backgroundColor: 'white',
