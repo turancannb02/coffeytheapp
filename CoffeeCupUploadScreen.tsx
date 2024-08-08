@@ -1,4 +1,6 @@
-import React, {useState} from 'react';
+// CoffeeCupUploadScreen.js (or .ts)
+
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -9,9 +11,10 @@ import {
   Alert,
   Platform,
 } from 'react-native';
-import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 
-const CoffeeCupUploadScreen = () => {
+const CoffeeCupUploadScreen = ({ navigation, route }) => {
+  const { userData } = route.params;
   const [images, setImages] = useState<Array<string | null>>([
     null,
     null,
@@ -46,30 +49,30 @@ const CoffeeCupUploadScreen = () => {
       'Upload Photo',
       'Choose an option',
       [
-        {text: 'Take Photo', onPress: () => takePhoto(index, options)},
+        { text: 'Take Photo', onPress: () => takePhoto(index, options) },
         {
           text: 'Choose from Gallery',
           onPress: () => chooseFromGallery(index, options),
         },
-        {text: 'Cancel', onPress: () => {}, style: 'cancel'},
+        { text: 'Cancel', onPress: () => {}, style: 'cancel' },
       ],
-      {cancelable: true},
+      { cancelable: true }
     );
   };
 
   const takePhoto = (index: number, options) => {
-    launchCamera(options, response =>
-      handleImagePickerResponse(response, index),
+    launchCamera(options, (response) =>
+      handleImagePickerResponse(response, index)
     );
   };
 
   const chooseFromGallery = (index: number, options) => {
-    launchImageLibrary(options, response =>
-      handleImagePickerResponse(response, index),
+    launchImageLibrary(options, (response) =>
+      handleImagePickerResponse(response, index)
     );
   };
 
-  const allImagesUploaded = images.every(img => img !== null);
+  const allImagesUploaded = images.every((img) => img !== null);
 
   return (
     <ScrollView style={styles.container}>
@@ -77,15 +80,18 @@ const CoffeeCupUploadScreen = () => {
         <Text style={styles.header}>Kahve Fincanınızı Yükleyin</Text>
       </View>
       <Text style={styles.title}>Kahve Fincanı Fotoğraflarını Yükle</Text>
-      <Text style={styles.subTitle}>İlk 3 fotoğraf kahve fincanı içi için</Text>
+      <Text style={styles.subTitle}>
+        İlk 3 fotoğraf kahve fincanı içi için
+      </Text>
       <View style={styles.imageContainer}>
         {images.slice(0, 3).map((img, index) => (
           <TouchableOpacity
             key={index}
             style={styles.imageBox}
-            onPress={() => showImagePickerOptions(index)}>
+            onPress={() => showImagePickerOptions(index)}
+          >
             {img ? (
-              <Image source={{uri: img}} style={styles.image} />
+              <Image source={{ uri: img }} style={styles.image} />
             ) : (
               <Text style={styles.addIcon}>+</Text>
             )}
@@ -95,9 +101,10 @@ const CoffeeCupUploadScreen = () => {
       <Text style={styles.title}>Kahve Tabağı Fotoğrafını Yükle</Text>
       <TouchableOpacity
         style={styles.imageBox}
-        onPress={() => showImagePickerOptions(3)}>
+        onPress={() => showImagePickerOptions(3)}
+      >
         {images[3] ? (
-          <Image source={{uri: images[3]}} style={styles.image} />
+          <Image source={{ uri: images[3] }} style={styles.image} />
         ) : (
           <Text style={styles.addIcon}>+</Text>
         )}
@@ -108,7 +115,10 @@ const CoffeeCupUploadScreen = () => {
           allImagesUploaded ? styles.buttonActive : styles.buttonDisabled,
         ]}
         disabled={!allImagesUploaded}
-        onPress={() => console.log('Images submitted:', images)}>
+        onPress={() =>
+          navigation.navigate('FortuneLoadingScreen', { images, userData })
+        }
+      >
         <Text style={styles.buttonText}>Falcıya Gönder!</Text>
       </TouchableOpacity>
     </ScrollView>
@@ -118,14 +128,14 @@ const CoffeeCupUploadScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 50, // Added consistent top padding
-    paddingHorizontal: 30, // Reduced side padding for wider space
+    paddingTop: 50,
+    paddingHorizontal: 30,
     backgroundColor: '#fcf4e4',
   },
   headerContainer: {
-    alignItems: 'flex-start', // Centers the header text horizontally
+    alignItems: 'flex-start',
     marginBottom: 50,
-    marginTop: Platform.OS === 'ios' ? 50 : 20, // Adjusts top margin specifically for iOS
+    marginTop: Platform.OS === 'ios' ? 50 : 20,
   },
   header: {
     fontSize: 24,
@@ -137,13 +147,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#88400d',
     marginBottom: 5,
-    textAlign: 'left', // Ensures text is centered
+    textAlign: 'left',
   },
   subTitle: {
     fontSize: 14,
     color: 'gray',
     marginBottom: 10,
-    textAlign: 'left', // Ensures text is centered
+    textAlign: 'left',
   },
   imageContainer: {
     flexDirection: 'row',
@@ -177,7 +187,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
@@ -194,7 +204,7 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     backgroundColor: '#ccc',
-    borderWidth: 0, // No border when button is disabled
+    borderWidth: 0,
   },
 });
 

@@ -15,13 +15,21 @@ import LinearGradient from 'react-native-linear-gradient';
 interface MainScreenProps {
   route: {
     params: {
-      userName: string;
+      userData: {
+        name: string;
+        age: string;
+        gender: string;
+        status: string;
+        sexualInterest: string;
+        intention: string;
+        birthday: Date;
+      };
     };
   };
 }
 
 const MainScreen: React.FC<MainScreenProps> = ({route}) => {
-  const {userName} = route.params;
+  const {userData} = route.params;
   const navigation = useNavigation();
   const homeIcon: ImageSourcePropType = require('./assets/home.png');
   const plusIcon: ImageSourcePropType = require('./assets/plus.png');
@@ -54,7 +62,7 @@ const MainScreen: React.FC<MainScreenProps> = ({route}) => {
           text: 'Devam Et',
           onPress: () => {
             console.log('Devam Et pressed');
-            navigation.navigate('CoffeeCupUploadScreen');
+            navigation.navigate('CoffeeCupUploadScreen', { userData });
           },
         },
       ],
@@ -63,40 +71,66 @@ const MainScreen: React.FC<MainScreenProps> = ({route}) => {
   };
 
   const fontSize = scrollY.interpolate({
-    inputRange: [50, 100],
-    outputRange: [32, 20],
-    extrapolate: 'clamp',
-  });
-
-  const welcomePosition = scrollY.interpolate({
     inputRange: [0, 100],
-    outputRange: [0, 50],
+    outputRange: [32, 24],
     extrapolate: 'clamp',
   });
 
-  return (
-    <LinearGradient colors={['#fff', '#f8e9c1']} style={styles.container}>
-      <Animated.Text
-        style={[
-          styles.welcomeText,
-          {
-            fontSize: fontSize,
-            transform: [{translateY: fontSize}, {translateX: welcomePosition}],
-            textAlign: 'center', // Ensure text is centered when it moves
-          },
-        ]}>
-        👋 Hoşgeldin {userName}!
-      </Animated.Text>
+  const welcomePositionX = scrollY.interpolate({
+    inputRange: [0, 100],
+    outputRange: [-30, 0],
+    extrapolate: 'clamp',
+  });
+
+  const welcomePositionY = scrollY.interpolate({
+    inputRange: [0, 100],
+    outputRange: [30, -25],
+    extrapolate: 'clamp',
+  });
+
+  const headerBackgroundColor = scrollY.interpolate({
+    inputRange: [0, 100],
+    outputRange: ['transparent', '#ffffff'],
+    extrapolate: 'clamp',
+  });
+
+  const Header = () => (
+    <Animated.View
+      style={[
+        styles.header,
+        {backgroundColor: headerBackgroundColor},
+      ]}>
       <TouchableOpacity
         style={styles.wheelButton}
         onPress={() => console.log('Wheel of Prizes')}>
         <Image source={wheelIcon} style={styles.wheelIcon} />
       </TouchableOpacity>
+      <Animated.Text
+        style={[
+          styles.welcomeText,
+          {
+            fontSize: fontSize,
+            transform: [
+              {translateX: welcomePositionX},
+              {translateY: welcomePositionY},
+            ],
+            textAlign: 'center',
+            flex: 1,
+          },
+        ]}>
+        👋 Hoşgeldin {userData.name}!
+      </Animated.Text>
       <TouchableOpacity
         style={styles.notificationButton}
         onPress={() => console.log('Notifications')}>
         <Image source={notificationIcon} style={styles.notificationIcon} />
       </TouchableOpacity>
+    </Animated.View>
+  );
+
+  return (
+    <LinearGradient colors={['#fff', '#f8e9c1']} style={styles.container}>
+      <Header />
       <Animated.FlatList
         data={services}
         keyExtractor={item => item.key}
@@ -108,7 +142,7 @@ const MainScreen: React.FC<MainScreenProps> = ({route}) => {
           </TouchableOpacity>
         )}
         style={styles.grid}
-        contentContainerStyle={styles.contentContainer} // Add this line
+        contentContainerStyle={styles.contentContainer}
         onScroll={Animated.event(
           [{nativeEvent: {contentOffset: {y: scrollY}}}],
           {useNativeDriver: false},
@@ -141,11 +175,24 @@ const styles = StyleSheet.create({
     position: 'relative',
     justifyContent: 'space-between',
   },
+  header: {
+    height: 120,
+    paddingTop: 50,
+    paddingHorizontal: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    position: 'relative',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5,
+  },
   wheelButton: {
     position: 'absolute',
     top: 50,
     left: 20,
-    zIndex: 1,
     padding: 5,
   },
   wheelIcon: {
@@ -156,7 +203,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 50,
     right: 20,
-    zIndex: 1,
     padding: 5,
   },
   notificationIcon: {
@@ -164,11 +210,11 @@ const styles = StyleSheet.create({
     height: 30,
   },
   grid: {
-    flex: 1, // Ensures it takes available space
+    flex: 1,
     width: '100%',
   },
   contentContainer: {
-    flexGrow: 1,
+    marginTop: 50,
     justifyContent: 'center',
     paddingHorizontal: 20,
   },
@@ -199,11 +245,9 @@ const styles = StyleSheet.create({
   welcomeText: {
     fontSize: 32,
     color: '#88400d',
-    paddingHorizontal: 20,
     fontWeight: 'bold',
-    alignSelf: 'flex-start',
-    marginTop: 100,
-    position: 'absolute', // Fixes the welcome text position
+    alignSelf: 'center',
+    marginTop: 30,
   },
   navBar: {
     flexDirection: 'row',

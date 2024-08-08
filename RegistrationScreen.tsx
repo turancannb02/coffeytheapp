@@ -1,4 +1,6 @@
-import React, {useState} from 'react';
+// RegistrationScreen.js
+
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -11,20 +13,20 @@ import {
 import RNPickerSelect from 'react-native-picker-select';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
-const RegistrationScreen = ({navigation}) => {
+const RegistrationScreen = ({ navigation }) => {
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
   const [gender, setGender] = useState('');
   const [status, setStatus] = useState('');
   const [sexualInterest, setSexualInterest] = useState('');
-  const [intension, setIntension] = useState('');
+  const [intention, setIntention] = useState('');
   const [birthday, setBirthday] = useState(new Date());
   const [isFormValid, setIsFormValid] = useState(false);
-  const [showDatePicker, setShowDatePicker] = useState(false); // State to control visibility of the DatePicker
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const checkFormValidity = () => {
     setIsFormValid(
-      name.trim() !== '' && age.trim() !== '' && parseInt(age, 10) > 0,
+      name.trim() !== '' && age.trim() !== '' && parseInt(age, 10) > 0
     );
   };
 
@@ -32,7 +34,7 @@ const RegistrationScreen = ({navigation}) => {
   const handleDateChange = (event, selectedDate) => {
     const currentDate = selectedDate || birthday;
     setBirthday(currentDate);
-    setShowDatePicker(false); // Hide picker after selection
+    setShowDatePicker(false);
   };
 
   return (
@@ -45,7 +47,7 @@ const RegistrationScreen = ({navigation}) => {
           style={styles.input}
           placeholder="İsim"
           value={name}
-          onChangeText={text => {
+          onChangeText={(text) => {
             setName(text);
             checkFormValidity();
           }}
@@ -57,7 +59,7 @@ const RegistrationScreen = ({navigation}) => {
           placeholder="Yaş"
           keyboardType="numeric"
           value={age}
-          onChangeText={text => {
+          onChangeText={(text) => {
             setAge(text);
             checkFormValidity();
           }}
@@ -66,7 +68,8 @@ const RegistrationScreen = ({navigation}) => {
         <Text style={styles.label}>Doğum Tarihi</Text>
         <TouchableOpacity
           onPress={() => setShowDatePicker(true)}
-          style={styles.datePickerButton}>
+          style={styles.datePickerButton}
+        >
           <Text>{birthday.toLocaleDateString()}</Text>
         </TouchableOpacity>
         {showDatePicker && (
@@ -83,55 +86,55 @@ const RegistrationScreen = ({navigation}) => {
         <Text style={styles.label}>Cinsiyet</Text>
         <RNPickerSelect
           style={pickerSelectStyles}
-          onValueChange={value => {
+          onValueChange={(value) => {
             setGender(value);
           }}
           items={[
-            {label: 'Erkek', value: 'Erkek'},
-            {label: 'Kadın', value: 'Kadın'},
-            {label: 'Diğer', value: 'Diğer'},
+            { label: 'Erkek', value: 'Erkek' },
+            { label: 'Kadın', value: 'Kadın' },
+            { label: 'Diğer', value: 'Diğer' },
           ]}
-          placeholder={{label: 'Cinsiyet Seçin', value: null}}
+          placeholder={{ label: 'Cinsiyet Seçin', value: null }}
         />
 
         <Text style={styles.label}>İlişki Durumu</Text>
         <RNPickerSelect
           style={pickerSelectStyles}
-          onValueChange={value => setStatus(value)}
+          onValueChange={(value) => setStatus(value)}
           items={[
-            {label: 'Bekar', value: 'Bekar'},
-            {label: 'Evli', value: 'Evli'},
-            {label: 'Boşanmış', value: 'Boşanmış'},
-            {label: 'Karmaşık', value: 'Karmaşık'},
-            {label: 'Diğer', value: 'Diğer'},
+            { label: 'Bekar', value: 'Bekar' },
+            { label: 'Evli', value: 'Evli' },
+            { label: 'Boşanmış', value: 'Boşanmış' },
+            { label: 'Karmaşık', value: 'Karmaşık' },
+            { label: 'Diğer', value: 'Diğer' },
           ]}
-          placeholder={{label: 'İlişki Durumunuzu Seçin', value: null}}
+          placeholder={{ label: 'İlişki Durumunuzu Seçin', value: null }}
         />
         <Text style={styles.label}>İlgi Alanı</Text>
         <RNPickerSelect
           style={pickerSelectStyles}
-          onValueChange={value => {
+          onValueChange={(value) => {
             setSexualInterest(value);
           }}
           items={[
-            {label: 'Erkek', value: 'Erkek'},
-            {label: 'Kadın', value: 'Kadın'},
-            {label: 'Diğer', value: 'Diğer'},
+            { label: 'Erkek', value: 'Erkek' },
+            { label: 'Kadın', value: 'Kadın' },
+            { label: 'Diğer', value: 'Diğer' },
           ]}
-          placeholder={{label: 'İlgi Alanınızı Seçin', value: null}}
+          placeholder={{ label: 'İlgi Alanınızı Seçin', value: null }}
         />
         <Text style={styles.label}>Falın Amacı</Text>
         <RNPickerSelect
           style={pickerSelectStyles}
-          onValueChange={value => {
-            setIntension(value);
+          onValueChange={(value) => {
+            setIntention(value);
           }}
           items={[
-            {label: 'Aşk', value: 'Aşk'},
-            {label: 'Kariyer', value: 'Kariyer'},
-            {label: 'Sağlık', value: 'Sağlık'},
+            { label: 'Aşk', value: 'Aşk' },
+            { label: 'Kariyer', value: 'Kariyer' },
+            { label: 'Sağlık', value: 'Sağlık' },
           ]}
-          placeholder={{label: 'Falın Amacını Seçin', value: null}}
+          placeholder={{ label: 'Falın Amacını Seçin', value: null }}
         />
 
         <TouchableOpacity
@@ -141,10 +144,20 @@ const RegistrationScreen = ({navigation}) => {
           ]}
           onPress={() => {
             if (isFormValid) {
-              navigation.navigate('Main', {userName: name});
+              const userData = {
+                name,
+                age,
+                gender,
+                status,
+                sexualInterest,
+                intention,
+                birthday: birthday.toISOString(), // Convert Date object to string
+              };
+              navigation.navigate('Main', { userData });
             }
           }}
-          disabled={!isFormValid}>
+          disabled={!isFormValid}
+        >
           <Text style={styles.buttonText}>Kayıt Ol</Text>
         </TouchableOpacity>
       </View>

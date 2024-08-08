@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     borderRadius: 30,
     borderWidth: 0,
-    width: 250,
+    width: 350,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 100, // Ensures button is towards the bottom
