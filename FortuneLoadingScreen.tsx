@@ -1,5 +1,3 @@
-// FortuneLoadingScreen.tsx
-
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -7,26 +5,25 @@ import {
   StyleSheet,
   ActivityIndicator,
   TouchableOpacity,
+  Image, // Import the Image component
 } from 'react-native';
-import getFortuneText from './getFortuneText'; // Import the API request function
-import { getZodiacSign } from './zodiacUtils'; // Import the utility function
+import getFortuneText from './getFortuneText';
+import { getZodiacSign } from './zodiacUtils';
 
 const FortuneLoadingScreen = ({ navigation, route }) => {
-  const { images, userData } = route.params; // Extract userData and images
+  const { images, userData } = route.params;
   const [loading, setLoading] = useState(true);
   const [fortuneReady, setFortuneReady] = useState(false);
   const [fortuneText, setFortuneText] = useState('');
 
   useEffect(() => {
-    // Fetch fortune when the component mounts
     fetchFortune();
   }, []);
 
   const fetchFortune = async () => {
     try {
-      console.log('User Data:', userData); // Debugging line
+      console.log('User Data:', userData);
       const zodiacSign = getZodiacSign(new Date(userData.birthday));
-      // Construct the prompt using the images and user data
       const prompt = `Görselleri bir falcı gibi yorumla. Kullanıcının adı ${userData.name}, yaşı ${userData.age}, cinsiyeti ${userData.gender}, ilgi alanı ${userData.sexualInterest}, ilişki durumu ${userData.status}, falın amacı ${userData.intention}, ve burcu ${zodiacSign}. Samimi bir dil kullan ve kullanıcıların duymak isteyeceği şeyleri belirt. Yorumlamayı profesyonel yap ve genel olarak giriş, gelişme ve sonuç paragraflarından oluşsun istiyorum.`;
 
       const responseText = await getFortuneText(prompt);
@@ -45,6 +42,10 @@ const FortuneLoadingScreen = ({ navigation, route }) => {
 
   return (
     <View style={styles.container}>
+      <Image
+        source={require('./assets/women_holding_coffee_cup.png')}
+        style={styles.image}
+      />
       {loading ? (
         <>
           <ActivityIndicator size="large" color="#88400d" />
@@ -77,17 +78,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fcf4e4',
   },
+  image: {
+    width: 300, // Adjust the width as needed
+    height: 300, // Adjust the height as needed
+    resizeMode: 'contain', // Keep the aspect ratio
+    marginBottom: 20, // Spacing between the image and the loading indicator
+  },
   loadingText: {
     fontSize: 16,
     color: '#88400d',
     marginTop: 20,
   },
   button: {
-    marginTop: 20,
+    marginTop: 30,
     paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 30,
-    borderWidth: 2,
+    paddingHorizontal: 80,
+    borderRadius: 10,
+    borderWidth: 0,
     borderColor: '#88400d',
     alignItems: 'center',
     justifyContent: 'center',
