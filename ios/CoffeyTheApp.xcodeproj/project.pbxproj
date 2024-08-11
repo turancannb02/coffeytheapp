@@ -15,7 +15,7 @@
 		19EC1E226387D7EC232644B0 /* libPods-CoffeyTheApp-CoffeyTheAppTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D0418BDABDBAE557A735CA8D /* libPods-CoffeyTheApp-CoffeyTheAppTests.a */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		B1E1AAE7E0802906E2BAA056 /* libPods-CoffeyTheApp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D85EAA4CE5C8D58B4C598C69 /* libPods-CoffeyTheApp.a */; };
-		B84829EF2C66465300069846 /* main.jsbundle in Resources */ = {isa = PBXBuildFile; fileRef = B84829EE2C66465300069846 /* main.jsbundle */; };
+		B84370F52C68CD26005C29D7 /* main.jsbundle in Resources */ = {isa = PBXBuildFile; fileRef = B84370F42C68CD26005C29D7 /* main.jsbundle */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -42,7 +42,22 @@
 		26A6BD252F7E9B6DA119F899 /* Pods-CoffeyTheApp-CoffeyTheAppTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CoffeyTheApp-CoffeyTheAppTests.debug.xcconfig"; path = "Target Support Files/Pods-CoffeyTheApp-CoffeyTheAppTests/Pods-CoffeyTheApp-CoffeyTheAppTests.debug.xcconfig"; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = CoffeyTheApp/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		A2769C46C396210FFBA211C0 /* Pods-CoffeyTheApp-CoffeyTheAppTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CoffeyTheApp-CoffeyTheAppTests.release.xcconfig"; path = "Target Support Files/Pods-CoffeyTheApp-CoffeyTheAppTests/Pods-CoffeyTheApp-CoffeyTheAppTests.release.xcconfig"; sourceTree = "<group>"; };
-		B84829EE2C66465300069846 /* main.jsbundle */ = {isa = PBXFileReference; lastKnownFileType = text; path = main.jsbundle; sourceTree = "<group>"; };
+		B83D94262C69053E0023D9DE /* app_logo_1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = app_logo_1.png; sourceTree = "<group>"; };
+		B83D94272C69053E0023D9DE /* background-3.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "background-3.png"; sourceTree = "<group>"; };
+		B83D94282C69053E0023D9DE /* bell.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = bell.png; sourceTree = "<group>"; };
+		B83D94292C69053E0023D9DE /* coffee.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = coffee.png; sourceTree = "<group>"; };
+		B83D942A2C69053E0023D9DE /* constellation.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = constellation.png; sourceTree = "<group>"; };
+		B83D942B2C69053E0023D9DE /* gear.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gear.png; sourceTree = "<group>"; };
+		B83D942C2C69053E0023D9DE /* home.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = home.png; sourceTree = "<group>"; };
+		B83D942D2C69053E0023D9DE /* horoscope.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = horoscope.png; sourceTree = "<group>"; };
+		B83D942E2C69053E0023D9DE /* plus.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = plus.png; sourceTree = "<group>"; };
+		B83D942F2C69053E0023D9DE /* wheel.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = wheel.png; sourceTree = "<group>"; };
+		B83D94302C69053E0023D9DE /* women_holding_coffee_cup.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = women_holding_coffee_cup.png; sourceTree = "<group>"; };
+		B83D94322C69053E0023D9DE /* back-icon-mask.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "back-icon-mask.png"; sourceTree = "<group>"; };
+		B83D94332C69053E0023D9DE /* back-icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "back-icon.png"; sourceTree = "<group>"; };
+		B83D94342C69053E0023D9DE /* back-icon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "back-icon@2x.png"; sourceTree = "<group>"; };
+		B83D94352C69053E0023D9DE /* back-icon@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "back-icon@3x.png"; sourceTree = "<group>"; };
+		B84370F42C68CD26005C29D7 /* main.jsbundle */ = {isa = PBXFileReference; lastKnownFileType = text; path = main.jsbundle; sourceTree = "<group>"; };
 		D0418BDABDBAE557A735CA8D /* libPods-CoffeyTheApp-CoffeyTheAppTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-CoffeyTheApp-CoffeyTheAppTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D85EAA4CE5C8D58B4C598C69 /* libPods-CoffeyTheApp.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-CoffeyTheApp.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D992C93BFE5EFBF8B0CAA732 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = CoffeyTheApp/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
@@ -91,7 +106,7 @@
 		13B07FAE1A68108700A75B9A /* CoffeyTheApp */ = {
 			isa = PBXGroup;
 			children = (
-				B84829EE2C66465300069846 /* main.jsbundle */,
+				B83D943B2C69053E0023D9DE /* assets */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
 				13B07FB01A68108700A75B9A /* AppDelegate.mm */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
@@ -100,6 +115,7 @@
 				13B07FB71A68108700A75B9A /* main.m */,
 				13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */,
 				D992C93BFE5EFBF8B0CAA732 /* PrivacyInfo.xcprivacy */,
+				B84370F42C68CD26005C29D7 /* main.jsbundle */,
 			);
 			name = CoffeyTheApp;
 			sourceTree = "<group>";
@@ -143,6 +159,76 @@
 				00E356EE1AD99517003FC87E /* CoffeyTheAppTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		B83D94312C69053E0023D9DE /* assets */ = {
+			isa = PBXGroup;
+			children = (
+				B83D94262C69053E0023D9DE /* app_logo_1.png */,
+				B83D94272C69053E0023D9DE /* background-3.png */,
+				B83D94282C69053E0023D9DE /* bell.png */,
+				B83D94292C69053E0023D9DE /* coffee.png */,
+				B83D942A2C69053E0023D9DE /* constellation.png */,
+				B83D942B2C69053E0023D9DE /* gear.png */,
+				B83D942C2C69053E0023D9DE /* home.png */,
+				B83D942D2C69053E0023D9DE /* horoscope.png */,
+				B83D942E2C69053E0023D9DE /* plus.png */,
+				B83D942F2C69053E0023D9DE /* wheel.png */,
+				B83D94302C69053E0023D9DE /* women_holding_coffee_cup.png */,
+			);
+			path = assets;
+			sourceTree = "<group>";
+		};
+		B83D94362C69053E0023D9DE /* assets */ = {
+			isa = PBXGroup;
+			children = (
+				B83D94322C69053E0023D9DE /* back-icon-mask.png */,
+				B83D94332C69053E0023D9DE /* back-icon.png */,
+				B83D94342C69053E0023D9DE /* back-icon@2x.png */,
+				B83D94352C69053E0023D9DE /* back-icon@3x.png */,
+			);
+			path = assets;
+			sourceTree = "<group>";
+		};
+		B83D94372C69053E0023D9DE /* src */ = {
+			isa = PBXGroup;
+			children = (
+				B83D94362C69053E0023D9DE /* assets */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		B83D94382C69053E0023D9DE /* elements */ = {
+			isa = PBXGroup;
+			children = (
+				B83D94372C69053E0023D9DE /* src */,
+			);
+			path = elements;
+			sourceTree = "<group>";
+		};
+		B83D94392C69053E0023D9DE /* @react-navigation */ = {
+			isa = PBXGroup;
+			children = (
+				B83D94382C69053E0023D9DE /* elements */,
+			);
+			path = "@react-navigation";
+			sourceTree = "<group>";
+		};
+		B83D943A2C69053E0023D9DE /* node_modules */ = {
+			isa = PBXGroup;
+			children = (
+				B83D94392C69053E0023D9DE /* @react-navigation */,
+			);
+			path = node_modules;
+			sourceTree = "<group>";
+		};
+		B83D943B2C69053E0023D9DE /* assets */ = {
+			isa = PBXGroup;
+			children = (
+				B83D94312C69053E0023D9DE /* assets */,
+				B83D943A2C69053E0023D9DE /* node_modules */,
+			);
+			path = assets;
 			sourceTree = "<group>";
 		};
 		BBD78D7AC51CEA395F1C20DB /* Pods */ = {
@@ -252,7 +338,7 @@
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				0E6F1050BC296D8263195CB9 /* PrivacyInfo.xcprivacy in Resources */,
-				B84829EF2C66465300069846 /* main.jsbundle in Resources */,
+				B84370F52C68CD26005C29D7 /* main.jsbundle in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
