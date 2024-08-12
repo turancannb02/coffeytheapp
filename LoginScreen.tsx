@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import React, {useState} from 'react';
+import {View, Text, TouchableOpacity, StyleSheet, Image} from 'react-native';
 import Modal from 'react-native-modal';
 
-const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
+const LoginScreen: React.FC<{navigation: any}> = ({navigation}) => {
   const [modalVisible, setModalVisible] = useState(false);
 
   return (
@@ -29,19 +29,42 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         swipeDirection="down"
         style={styles.modal}>
         <View style={styles.modalContent}>
+          <View style={styles.authButtonsContainer}>
+            <TouchableOpacity
+              style={styles.authButton}
+              onPress={() => {
+                setModalVisible(false);
+                navigation.navigate('SomeScreenForGoogleLogin');
+              }}>
+              <Image
+                source={require('./assets/google_icon.png')} // Make sure you have this icon
+                style={styles.iconStyle}
+              />
+              <Text style={styles.authButtonText}>Google</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.authButton}
+              onPress={() => {
+                setModalVisible(false);
+                navigation.navigate('SomeScreenForFacebookLogin'); // Make sure you have a handler for this
+              }}>
+              <Image
+                source={require('./assets/facebook_icon.png')} // Make sure you have this icon
+                style={styles.iconStyle}
+              />
+              <Text style={styles.authButtonText}>Facebook</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.dividerContainer}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>Or</Text>
+            <View style={styles.dividerLine} />
+          </View>
           <TouchableOpacity
             style={styles.modalButton}
             onPress={() => {
               setModalVisible(false);
-              navigation.navigate('SomeScreenForGoogleLogin');
-            }}>
-            <Text style={styles.modalText}>Google ile Giriş Yapınız</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.modalButton}
-            onPress={() => {
-              setModalVisible(false);
-              navigation.navigate('HomeScreen');
+              navigation.navigate('Registration');
             }}>
             <Text style={styles.modalText}>Üyeliksiz Devam Et</Text>
           </TouchableOpacity>
@@ -108,7 +131,7 @@ const styles = StyleSheet.create({
     margin: 0,
   },
   modalContent: {
-    backgroundColor: '#fcf4e4',
+    backgroundColor: '#8a4412',
     padding: 75,
     justifyContent: 'center',
     alignItems: 'center',
@@ -117,7 +140,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(0, 0, 0, 0.1)',
   },
   modalButton: {
-    backgroundColor: '#8a4412',
+    backgroundColor: '#fcf4e4',
     borderRadius: 20,
     padding: 10,
     elevation: 2,
@@ -127,10 +150,51 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   modalText: {
-    color: '#fcf4e4',
+    color: '#8a4412',
     textAlign: 'center',
-    fontWeight: "bold",
+    fontWeight: 'bold',
     fontSize: 16,
+  },
+  authButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'start',
+    marginBottom: 30,
+  },
+  authButton: {
+    backgroundColor: '#fcf4e4',
+    borderRadius: 50,
+    padding: 10,
+    width: '70%', // Adjust the width so two buttons fit in the same row
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
+    marginRight: 10,
+  },
+  iconStyle: {
+    width: 24,
+    height: 24,
+    marginRight: 10,
+  },
+  authButtonText: {
+    color: '#8a4412',
+    textAlign: 'center',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 50, // Adjust spacing as needed
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: 'lightgrey',
+  },
+  dividerText: {
+    width: 30,
+    textAlign: 'center',
+    color: 'lightgrey',
   },
 });
 

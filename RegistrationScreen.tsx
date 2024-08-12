@@ -1,6 +1,6 @@
 // RegistrationScreen.js
 
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -8,12 +8,16 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  Platform,
+  SafeAreaView,
+  Image,
+  Alert,
 } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import {signInAnonymously, saveUserData} from './authService'; // Import authentication services
 
-const RegistrationScreen = ({ navigation }) => {
+
+const RegistrationScreen = ({navigation}) => {
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
   const [gender, setGender] = useState('');
@@ -26,205 +30,248 @@ const RegistrationScreen = ({ navigation }) => {
 
   const checkFormValidity = () => {
     setIsFormValid(
-      name.trim() !== '' && age.trim() !== '' && parseInt(age, 10) > 0
+      name.trim() !== '' && age.trim() !== '' && parseInt(age, 10) > 0,
     );
   };
 
-  // Handle date change
   const handleDateChange = (event, selectedDate) => {
     const currentDate = selectedDate || birthday;
     setBirthday(currentDate);
     setShowDatePicker(false);
   };
 
+  const handleBack = () => {
+    Alert.alert(
+      'Çıkış Yap',
+      'Emin misiniz? İptal ederseniz girdiğiniz bilgiler silinecektir.',
+      [
+        {text: 'İptal', style: 'cancel'},
+        {text: 'Evet', onPress: () => navigation.goBack()},
+      ],
+    );
+  };
+
+  const handleRegister = async () => {
+    const {userId, deviceDetails} = await signInAnonymously(); // Now returns both userId and deviceDetails
+    if (userId && deviceDetails) {
+      const userData = {
+        name,
+        age,
+        gender,
+        status,
+        sexualInterest,
+        intention,
+        birthday: birthday.toISOString(),
+      };
+      await saveUserData(userId, userData, deviceDetails); // Save user data along with device details
+      navigation.navigate('Main', {userData});
+    } else {
+      Alert.alert(
+        'Registration Error',
+        'Unable to register. Please try again.',
+      );
+    }
+  };
+
+  const formatDate = date => {
+    return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+  };
+
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.form}>
-        <Text style={styles.header}>Kişisel Bilgiler</Text>
+    <SafeAreaView style={styles.container}>
+      <ScrollView style={styles.scrollView}>
+        <View style={styles.headerContainer}>
+          <TouchableOpacity style={styles.closeButton} onPress={handleBack}>
+            <Image
+              source={require('./assets/close.png')}
+              style={styles.closeIcon}
+            />
+          </TouchableOpacity>
+          <Text style={styles.header}>Kişisel Bilgiler</Text>
+        </View>
 
-        <Text style={styles.label}>İsim</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="İsim"
-          value={name}
-          onChangeText={(text) => {
-            setName(text);
-            checkFormValidity();
-          }}
-        />
-
-        <Text style={styles.label}>Yaş</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Yaş"
-          keyboardType="numeric"
-          value={age}
-          onChangeText={(text) => {
-            setAge(text);
-            checkFormValidity();
-          }}
-        />
-
-        <Text style={styles.label}>Doğum Tarihi</Text>
-        <TouchableOpacity
-          onPress={() => setShowDatePicker(true)}
-          style={styles.datePickerButton}
-        >
-          <Text>{birthday.toLocaleDateString()}</Text>
-        </TouchableOpacity>
-        {showDatePicker && (
-          <DateTimePicker
-            testID="dateTimePicker"
-            value={birthday}
-            mode="date"
-            display="default"
-            onChange={handleDateChange}
-            maximumDate={new Date()}
+        <View style={styles.form}>
+          <Text style={styles.label}>İsim</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="İsim"
+            value={name}
+            onChangeText={setName}
+            onEndEditing={checkFormValidity}
           />
-        )}
 
-        <Text style={styles.label}>Cinsiyet</Text>
-        <RNPickerSelect
-          style={pickerSelectStyles}
-          onValueChange={(value) => {
-            setGender(value);
-          }}
-          items={[
-            { label: 'Erkek', value: 'Erkek' },
-            { label: 'Kadın', value: 'Kadın' },
-            { label: 'Diğer', value: 'Diğer' },
-          ]}
-          placeholder={{ label: 'Cinsiyet Seçin', value: null }}
-        />
+          <Text style={styles.label}>Yaş</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Yaş"
+            keyboardType="numeric"
+            value={age}
+            onChangeText={setAge}
+            onEndEditing={checkFormValidity}
+          />
 
-        <Text style={styles.label}>İlişki Durumu</Text>
-        <RNPickerSelect
-          style={pickerSelectStyles}
-          onValueChange={(value) => setStatus(value)}
-          items={[
-            { label: 'Bekar', value: 'Bekar' },
-            { label: 'Evli', value: 'Evli' },
-            { label: 'Boşanmış', value: 'Boşanmış' },
-            { label: 'Karmaşık', value: 'Karmaşık' },
-            { label: 'Diğer', value: 'Diğer' },
-          ]}
-          placeholder={{ label: 'İlişki Durumunuzu Seçin', value: null }}
-        />
-        <Text style={styles.label}>İlgi Alanı</Text>
-        <RNPickerSelect
-          style={pickerSelectStyles}
-          onValueChange={(value) => {
-            setSexualInterest(value);
-          }}
-          items={[
-            { label: 'Erkek', value: 'Erkek' },
-            { label: 'Kadın', value: 'Kadın' },
-            { label: 'Diğer', value: 'Diğer' },
-          ]}
-          placeholder={{ label: 'İlgi Alanınızı Seçin', value: null }}
-        />
-        <Text style={styles.label}>Falın Amacı</Text>
-        <RNPickerSelect
-          style={pickerSelectStyles}
-          onValueChange={(value) => {
-            setIntention(value);
-          }}
-          items={[
-            { label: 'Aşk', value: 'Aşk' },
-            { label: 'Kariyer', value: 'Kariyer' },
-            { label: 'Sağlık', value: 'Sağlık' },
-          ]}
-          placeholder={{ label: 'Falın Amacını Seçin', value: null }}
-        />
+          <Text style={styles.label}>Doğum Tarihi</Text>
+          <TouchableOpacity
+            onPress={() => setShowDatePicker(true)}
+            style={styles.datePickerButton}>
+            <Text>{formatDate(birthday)}</Text>
+          </TouchableOpacity>
+          {showDatePicker && (
+            <DateTimePicker
+              testID="dateTimePicker"
+              value={birthday}
+              mode="date"
+              display="default"
+              onChange={handleDateChange}
+              maximumDate={new Date()}
+            />
+          )}
 
+          <Text style={styles.label}>Cinsiyet</Text>
+          <RNPickerSelect
+            style={pickerSelectStyles}
+            onValueChange={setGender}
+            items={[
+              {label: 'Erkek', value: 'Erkek'},
+              {label: 'Kadın', value: 'Kadın'},
+              {label: 'Diğer', value: 'Diğer'},
+            ]}
+            placeholder={{label: 'Cinsiyet Seçin', value: null}}
+          />
+
+          <Text style={styles.label}>İlişki Durumu</Text>
+          <RNPickerSelect
+            style={pickerSelectStyles}
+            onValueChange={setStatus}
+            items={[
+              {label: 'Bekar', value: 'Bekar'},
+              {label: 'Evli', value: 'Evli'},
+              {label: 'Nişanlı', value: 'Nişanlı'},
+              {label: 'Boşanmış', value: 'Boşanmış'},
+              {label: 'Karmaşık', value: 'Karmaşık'},
+              {label: 'Diğer', value: 'Diğer'},
+            ]}
+            placeholder={{label: 'İlişki Durumunuzu Seçin', value: null}}
+          />
+
+          <Text style={styles.label}>İlgi Alanı</Text>
+          <RNPickerSelect
+            style={pickerSelectStyles}
+            onValueChange={setSexualInterest}
+            items={[
+              {label: 'Erkekler', value: 'Erkekler'},
+              {label: 'Kadınlar', value: 'Kadınlar'},
+              {label: 'Diğer', value: 'Diğer'},
+            ]}
+            placeholder={{label: 'İlgi Alanınızı Seçin', value: null}}
+          />
+
+          <Text style={styles.label}>Falın Amacı</Text>
+          <RNPickerSelect
+            style={pickerSelectStyles}
+            onValueChange={setIntention}
+            items={[
+              {label: 'Genel', value: 'Genel'},
+              {label: 'Aşk', value: 'Aşk'},
+              {label: 'Kariyer', value: 'Kariyer'},
+              {label: 'Sağlık', value: 'Sağlık'},
+            ]}
+            placeholder={{label: 'Falın Amacını Seçin', value: null}}
+          />
+        </View>
+      </ScrollView>
+      <View style={styles.footer}>
         <TouchableOpacity
           style={[
             styles.button,
             isFormValid ? styles.buttonActive : styles.buttonInactive,
           ]}
-          onPress={() => {
-            if (isFormValid) {
-              const userData = {
-                name,
-                age,
-                gender,
-                status,
-                sexualInterest,
-                intention,
-                birthday: birthday.toISOString(), // Convert Date object to string
-              };
-              navigation.navigate('Main', { userData });
-            }
-          }}
-          disabled={!isFormValid}
-        >
+          onPress={handleRegister}
+          disabled={!isFormValid}>
           <Text style={styles.buttonText}>Kayıt Ol</Text>
         </TouchableOpacity>
       </View>
-    </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
     backgroundColor: '#fcf4e4',
   },
+  scrollView: {
+    flex: 1,
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+  },
   form: {
-    marginTop: 70,
+    paddingHorizontal: 20,
   },
   header: {
-    fontSize: 36,
+    fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'left',
     color: '#8a4412',
   },
   label: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#8a4412',
-    marginBottom: 5,
+    marginBottom: 10,
   },
   input: {
     backgroundColor: 'white',
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    borderRadius: 20,
-    marginBottom: 15,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: '#ccc',
-  },
-  datePicker: {
-    marginBottom: 20,
-    backgroundColor: '#fcf4e4',
-    borderRadius: 24,
-    alignSelf: 'flex-start',
+    marginBottom: 15,
   },
   datePickerButton: {
-    // Style for the button that triggers the DatePicker
     backgroundColor: 'white',
-    padding: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
     borderRadius: 10,
     marginBottom: 15,
   },
   button: {
     padding: 12,
-    borderRadius: 10,
+    borderRadius: 20,
     alignItems: 'center',
-    marginBottom: 20,
+    backgroundColor: '#ccc',
   },
   buttonText: {
-    color: 'white',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
+    color: 'black',
   },
   buttonActive: {
-    backgroundColor: '#88400d',
+    backgroundColor: '#fcf4e4',
   },
   buttonInactive: {
-    backgroundColor: '#ccc',
+    backgroundColor: 'gray',
+  },
+  closeIcon: {
+    width: 40,
+    height: 40,
+    tintColor: '#8a4412',
+  },
+  closeButton: {
+    position: 'absolute',
+    left: 15,
+    top: 20,
+    zIndex: 1,
+  },
+  footer: {
+    padding: 20,
+    backgroundColor: '#8a4412',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
   },
 });
 

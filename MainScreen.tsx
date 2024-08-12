@@ -62,7 +62,7 @@ const MainScreen: React.FC<MainScreenProps> = ({route}) => {
           text: 'Devam Et',
           onPress: () => {
             console.log('Devam Et pressed');
-            navigation.navigate('CoffeeCupUploadScreen', { userData });
+            navigation.navigate('CoffeeCupUploadScreen', {userData});
           },
         },
       ],
@@ -96,10 +96,7 @@ const MainScreen: React.FC<MainScreenProps> = ({route}) => {
 
   const Header = () => (
     <Animated.View
-      style={[
-        styles.header,
-        {backgroundColor: headerBackgroundColor},
-      ]}>
+      style={[styles.header, {backgroundColor: headerBackgroundColor}]}>
       <TouchableOpacity
         style={styles.wheelButton}
         onPress={() => console.log('Wheel of Prizes')}>
@@ -160,7 +157,7 @@ const MainScreen: React.FC<MainScreenProps> = ({route}) => {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.navItem}
-          onPress={() => console.log('Settings')}>
+          onPress={() => navigation.navigate('Settings')}>
           <Image source={gearIcon} style={styles.icon} />
         </TouchableOpacity>
       </View>
@@ -253,18 +250,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     backgroundColor: '#fff',
-    width: '100%',
-    borderTopWidth: 1,
-    borderColor: '#ccc',
-    paddingVertical: 20,
-    borderTopLeftRadius: 25,
-    borderTopRightRadius: 25,
+    width: '90%',
+    paddingVertical: 15,
+    position: 'absolute',
+    bottom: 20, // Controls the space from the bottom
+    left: 25,
+    borderTopLeftRadius: 40,
+    borderTopRightRadius: 40,
+    borderBottomLeftRadius: 40,
+    borderBottomRightRadius: 40,
     shadowColor: '#000',
     shadowOffset: {width: 0, height: -2},
     shadowOpacity: 0.2,
     shadowRadius: 3,
     elevation: 10,
-    overflow: 'hidden',
   },
   navItem: {
     alignItems: 'center',

@@ -76,7 +76,7 @@ android {
 
     namespace "com.coffeytheapp"
     defaultConfig {
-        applicationId "com.coffeytheapp"
+        applicationId "com.myproject"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
@@ -115,4 +115,8 @@ dependencies {
     }
 }
 
+// Apply native modules gradle file
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
+
+// Apply Google Services at the bottom
+apply plugin: 'com.google.gms.google-services'

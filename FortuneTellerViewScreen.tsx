@@ -1,5 +1,11 @@
 import React from 'react';
-import {View, Text, StyleSheet, ScrollView, TouchableOpacity} from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+} from 'react-native';
 
 const FortuneTellerViewScreen = ({navigation, route}) => {
   const {fortuneText} = route.params;
@@ -12,7 +18,9 @@ const FortuneTellerViewScreen = ({navigation, route}) => {
       <View style={styles.fortuneContainer}>
         <Text style={styles.fortuneText}>{fortuneText}</Text>
       </View>
-      <TouchableOpacity style={styles.button} onPress={() => navigation.goBack()}>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.goBack()}>
         <Text style={styles.buttonText}>Ana Menüye Dön</Text>
       </TouchableOpacity>
     </ScrollView>
