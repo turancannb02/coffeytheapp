@@ -16,8 +16,8 @@ const getFortuneText = async (prompt) => {
           content: prompt,
         },
       ],
-      max_tokens: 500,
-      temperature: 0.7,
+      max_tokens: 5,
+      temperature: 0.1,
     }, {
       headers: {
         'Content-Type': 'application/json',

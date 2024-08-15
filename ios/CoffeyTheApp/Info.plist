@@ -26,18 +26,17 @@
 	<true/>
 	<key>NSAppTransportSecurity</key>
 	<dict>
-	  <!-- Do not change NSAllowsArbitraryLoads to true, or you will risk app rejection! -->
 		<key>NSAllowsArbitraryLoads</key>
 		<false/>
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
+	<string/>
 	<key>NSCameraUsageDescription</key>
-    <string>Your camera usage description here</string>
-    <key>NSPhotoLibraryUsageDescription</key>
-    <string>Your photo library usage description here</string>
+	<string>Your camera usage description here</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Your photo library usage description here</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>
@@ -52,5 +51,9 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>UIAppFonts</key>
+	<array>
+		<string>aristo.ttf</string>
+	</array>
 </dict>
 </plist>

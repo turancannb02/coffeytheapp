@@ -37,27 +37,27 @@ const LoginScreen: React.FC<{navigation: any}> = ({navigation}) => {
                 navigation.navigate('SomeScreenForGoogleLogin');
               }}>
               <Image
-                source={require('./assets/google_icon.png')} // Make sure you have this icon
+                source={require('./assets/google_icon.png')}
                 style={styles.iconStyle}
               />
-              <Text style={styles.authButtonText}>Google</Text>
+              <Text style={styles.authButtonText}>Google ile Giriş Yapınız</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.authButton}
               onPress={() => {
                 setModalVisible(false);
-                navigation.navigate('SomeScreenForFacebookLogin'); // Make sure you have a handler for this
+                navigation.navigate('SomeScreenForFacebookLogin');
               }}>
               <Image
-                source={require('./assets/facebook_icon.png')} // Make sure you have this icon
+                source={require('./assets/facebook_icon.png')}
                 style={styles.iconStyle}
               />
-              <Text style={styles.authButtonText}>Facebook</Text>
+              <Text style={styles.authButtonText}>Facebook ile Giriş Yapınız</Text>
             </TouchableOpacity>
           </View>
           <View style={styles.dividerContainer}>
             <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>Or</Text>
+            <Text style={styles.dividerText}>Ya da</Text>
             <View style={styles.dividerLine} />
           </View>
           <TouchableOpacity
@@ -74,6 +74,7 @@ const LoginScreen: React.FC<{navigation: any}> = ({navigation}) => {
   );
 };
 
+// @ts-ignore
 const styles = StyleSheet.create({
   background: {
     flex: 1,
@@ -100,13 +101,15 @@ const styles = StyleSheet.create({
   },
   welcomeText: {
     color: '#8a4412',
-    fontSize: 48,
-    fontWeight: 'bold',
-    marginBottom: 20,
+    fontSize: 54,
+    fontFamily: 'Nunito-Black',
+    fontWeight: '1000',
+    marginBottom: 30,
   },
   descriptionText: {
     color: '#8a4412',
-    fontSize: 18,
+    fontSize: 20,
+    fontFamily: 'Nunito-Black',
     textAlign: 'center',
     marginBottom: 100,
   },
@@ -120,11 +123,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 100,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5,
   },
   buttonText: {
     color: '#fcf4e4',
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 24,
+    fontFamily: 'Nunito-Black',
   },
   modal: {
     justifyContent: 'flex-end',
@@ -141,45 +149,55 @@ const styles = StyleSheet.create({
   },
   modalButton: {
     backgroundColor: '#fcf4e4',
-    borderRadius: 20,
+    borderRadius: 30,
     padding: 10,
     elevation: 2,
     width: 350,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5,
   },
   modalText: {
     color: '#8a4412',
     textAlign: 'center',
-    fontWeight: 'bold',
-    fontSize: 16,
+    fontFamily: 'Nunito-Black',
+    fontSize: 20,
   },
   authButtonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'start',
-    marginBottom: 30,
+    flexDirection: 'column', // Change to column
+    justifyContent: 'center', // Center the buttons vertically
+    alignItems: 'center', // Center the buttons horizontally
   },
   authButton: {
     backgroundColor: '#fcf4e4',
     borderRadius: 50,
     padding: 10,
-    width: '70%', // Adjust the width so two buttons fit in the same row
+    width: 350, // Make the buttons full width
     justifyContent: 'center',
     alignItems: 'center',
     flexDirection: 'row',
-    marginRight: 10,
+    marginBottom: 10, // Add margin between buttons
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5,
   },
   iconStyle: {
-    width: 24,
-    height: 24,
+    width: 30,
+    height: 30,
     marginRight: 10,
   },
   authButtonText: {
     color: '#8a4412',
     textAlign: 'center',
-    fontWeight: 'bold',
-    fontSize: 16,
+    fontFamily: 'Nunito-Black',
+    fontSize: 20,
   },
   dividerContainer: {
     flexDirection: 'row',
@@ -189,12 +207,14 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: 'lightgrey',
+    backgroundColor: 'white',
   },
   dividerText: {
-    width: 30,
+    width: 70,
     textAlign: 'center',
     color: 'lightgrey',
+    fontFamily: 'Nunito-Black',
+    fontSize: 20,
   },
 });
 

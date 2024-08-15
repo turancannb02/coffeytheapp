@@ -16,7 +16,6 @@ import RNPickerSelect from 'react-native-picker-select';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {signInAnonymously, saveUserData} from './authService'; // Import authentication services
 
-
 const RegistrationScreen = ({navigation}) => {
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
@@ -213,13 +212,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   header: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: 36,
+    fontFamily: 'Nunito-Black',
     color: '#8a4412',
   },
   label: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontFamily: 'Nunito-Black',
     color: '#8a4412',
     marginBottom: 10,
   },
@@ -229,8 +228,13 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: 'black',
     marginBottom: 15,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5,
   },
   datePickerButton: {
     backgroundColor: 'white',
@@ -238,23 +242,32 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 10,
     marginBottom: 15,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5,
   },
   button: {
     padding: 12,
     borderRadius: 20,
     alignItems: 'center',
     backgroundColor: '#ccc',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5,
   },
   buttonText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: 'black',
+    fontSize: 24,
+    fontFamily: 'Nunito-Black',
   },
   buttonActive: {
     backgroundColor: '#fcf4e4',
   },
   buttonInactive: {
-    backgroundColor: 'gray',
+    backgroundColor: 'darkgrey',
   },
   closeIcon: {
     width: 40,

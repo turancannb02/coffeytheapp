@@ -85,15 +85,16 @@ const styles = StyleSheet.create({
     marginBottom: 20, // Spacing between the image and the loading indicator
   },
   loadingText: {
-    fontSize: 16,
+    fontSize: 20,
     color: '#88400d',
     marginTop: 20,
+    fontFamily: 'Nunito-Black',
   },
   button: {
     marginTop: 30,
     paddingVertical: 12,
     paddingHorizontal: 80,
-    borderRadius: 10,
+    borderRadius: 20,
     borderWidth: 0,
     borderColor: '#88400d',
     alignItems: 'center',
@@ -105,9 +106,9 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   buttonText: {
-    fontSize: 18,
-    color: 'white',
-    fontWeight: 'bold',
+    fontSize: 20,
+    color: '#fcf4e4',
+    fontFamily: 'Nunito-Black',
   },
   buttonActive: {
     backgroundColor: '#88400d',
