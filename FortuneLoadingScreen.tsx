@@ -9,12 +9,14 @@ import {
 } from 'react-native';
 import getFortuneText from './getFortuneText';
 import { getZodiacSign } from './zodiacUtils';
+import messaging from '@react-native-firebase/messaging';
 
 const FortuneLoadingScreen = ({ navigation, route }) => {
   const { images, userData } = route.params;
   const [loading, setLoading] = useState(true);
   const [fortuneReady, setFortuneReady] = useState(false);
   const [fortuneText, setFortuneText] = useState('');
+  const [fcmToken, setFcmToken] = useState('');
 
   useEffect(() => {
     fetchFortune();
@@ -37,6 +39,30 @@ const FortuneLoadingScreen = ({ navigation, route }) => {
       console.error('Error fetching fortune:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const sendNotificationToBackend = async (token, fortuneText) => {
+    try {
+      const response = await fetch('http://your-server-ip:3000/send-notification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          token: token,
+          title: 'Your Fortune is Ready!',
+          body: 'Tap to read your fortune.',
+        }),
+      });
+
+      if (response.ok) {
+        console.log('Notification request sent successfully!');
+      } else {
+        console.error('Failed to send notification request.');
+      }
+    } catch (error) {
+      console.error('Error sending notification request:', error);
     }
   };
 

@@ -34,8 +34,11 @@ pod 'FirebaseCoreInternal', :modular_headers => true
 pod 'GoogleUtilities', :modular_headers => true
 pod 'FirebaseFirestore', :modular_headers => true
 pod 'FirebaseCore', :modular_headers => true
+pod 'Firebase/Auth', :modular_headers => true
 pod 'FirebaseCoreExtension', :modular_headers => true
 pod 'FirebaseFirestoreInternal', :modular_headers => true
+pod 'Firebase/Storage', :modular_headers => true # Ensure this line is included
+
 
 
   post_install do |installer|

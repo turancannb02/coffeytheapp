@@ -1,7 +1,9 @@
 import firebase from '@react-native-firebase/app';
 import '@react-native-firebase/auth'; // Ensures Firebase Auth module is set up
 import '@react-native-firebase/storage'; // Add this if you are handling images
+import { NativeModules, NativeEventEmitter } from 'react-native';
 
+// Firebase configuration
 const firebaseConfig = {
   apiKey: 'AIzaSyAFZdEv-BA4meAYORBXkR4qKrjL6b9krzE',
   authDomain: 'coffey-3ec22.firebaseapp.com',
@@ -17,3 +19,8 @@ const firebaseConfig = {
 if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
 }
+
+// Set up NativeEventEmitter for Firebase
+const eventEmitter = new NativeEventEmitter();
+
+// Now you can use firebaseEmitter to listen for any Firebase-specific events

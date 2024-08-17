@@ -7,18 +7,22 @@ import {
   Image,
   ScrollView,
   Alert,
+  ActivityIndicator, // Import ActivityIndicator
   Platform,
 } from 'react-native';
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
+import {useNavigation} from '@react-navigation/native';
 
-const CoffeeCupUploadScreen = ({navigation, route}) => {
+const CoffeeCupUploadScreen = ({route}) => {
   const {userData} = route.params;
+  const navigation = useNavigation();
   const [images, setImages] = useState<Array<string | null>>([
     null,
     null,
     null,
     null,
   ]);
+  const [loading, setLoading] = useState(false); // State to control loading indicator
 
   const updateImageAtIndex = (imageUri: string, index: number) => {
     const updatedImages = [...images];
@@ -72,6 +76,14 @@ const CoffeeCupUploadScreen = ({navigation, route}) => {
 
   const allImagesUploaded = images.every(img => img !== null);
 
+  const handleSubmit = () => {
+    setLoading(true); // Start loading
+    setTimeout(() => {
+      setLoading(false); // Stop loading after 3 seconds
+      navigation.navigate('FortuneLoadingScreen', {images, userData});
+    }, 3000); // 3-second delay
+  };
+
   return (
     <View style={styles.flexContainer}>
       <ScrollView style={styles.container}>
@@ -106,17 +118,37 @@ const CoffeeCupUploadScreen = ({navigation, route}) => {
           )}
         </TouchableOpacity>
       </ScrollView>
-      <TouchableOpacity
-        style={[
-          styles.button,
-          allImagesUploaded ? styles.buttonActive : styles.buttonInactive,
-        ]}
-        disabled={!allImagesUploaded}
-        onPress={() =>
-          navigation.navigate('FortuneLoadingScreen', {images, userData})
-        }>
-        <Text style={styles.buttonText}>Falcıya Gönder!</Text>
-      </TouchableOpacity>
+      <View>
+        <TouchableOpacity
+          style={[
+            styles.button,
+            allImagesUploaded ? styles.buttonActive : styles.buttonInactive,
+          ]}
+          disabled={!allImagesUploaded || loading} // Disable button if loading
+          onPress={handleSubmit}>
+          {loading ? (
+            <ActivityIndicator size="large" color="#fff" /> // Show loading indicator
+          ) : (
+            <Text style={styles.buttonText}>Falcıya Gönder!</Text>
+          )}
+        </TouchableOpacity>
+        {/* Navbar Section */}
+        <View style={styles.navBar}>
+          <TouchableOpacity
+            style={styles.navItem}
+            onPress={() => navigation.goBack()}>
+            <Image source={require('./assets/home.png')} style={styles.icon} />
+          </TouchableOpacity>
+        </View>
+        {/* Navbar Section */}
+        <View style={styles.navBar2}>
+          <TouchableOpacity
+            style={styles.navItem2}
+            onPress={() => navigation.navigate('Settings')}>
+            <Image source={require('./assets/gear.png')} style={styles.icon} />
+          </TouchableOpacity>
+        </View>
+      </View>
     </View>
   );
 };
@@ -124,7 +156,8 @@ const CoffeeCupUploadScreen = ({navigation, route}) => {
 const styles = StyleSheet.create({
   flexContainer: {
     flex: 1,
-    justifyContent: 'space-between', // This pushes the button to the bottom
+    backgroundColor: '#fcf4e4', // Set the background color here to ensure it covers the entire screen
+    justifyContent: 'space-between',
   },
   container: {
     paddingTop: 50,
@@ -132,14 +165,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#fcf4e4',
   },
   headerContainer: {
-    alignItems: 'flex-start',
-    marginBottom: 50,
-    marginTop: Platform.OS === 'ios' ? 50 : 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center', // Center the text in the header
+    marginBottom: 30, // Add space below the header
+    position: 'relative',
   },
   header: {
     fontSize: 36,
     color: '#88400d',
     fontFamily: 'Nunito-Black',
+    textAlign: 'center', // Center the text
   },
   title: {
     fontSize: 24,
@@ -188,15 +224,15 @@ const styles = StyleSheet.create({
   button: {
     padding: 12,
     borderRadius: 20,
+    top: 140,
     alignItems: 'center',
-    backgroundColor: '#ccc',
+    backgroundColor: '#fcf4e4',
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.3,
+    shadowOffset: {width: 0, height: -2},
+    shadowOpacity: 0.6,
     shadowRadius: 3,
     elevation: 5,
-    marginHorizontal: 30,  // Add horizontal margin to match the container padding
-    marginBottom: 30,  // Add bottom margin to separate from the bottom of the screen
+    marginHorizontal: 20,
   },
   buttonText: {
     fontSize: 24,
@@ -207,7 +243,63 @@ const styles = StyleSheet.create({
     backgroundColor: '#88400d',
   },
   buttonInactive: {
-    backgroundColor: 'darkgrey',
+    backgroundColor: 'darkgray',
+  },
+  navBar: {
+    flexDirection: 'row', // Butonların yan yana dizilmesini sağlar
+    justifyContent: 'space-around',
+    backgroundColor: 'rgb(255,255,255)',
+    width: '20%', // Genişliği artırarak iki butonun yan yana sığmasını sağlar
+    paddingVertical: 15,
+    position: 'relative',
+    bottom: 30,
+    right: 60,
+    alignSelf: 'center',
+    borderTopLeftRadius: 40,
+    borderTopRightRadius: 40,
+    borderBottomLeftRadius: 40,
+    borderBottomRightRadius: 40,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: -2},
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 15,
+    marginHorizontal: 5, // Yan boşluk bırakır
+  },
+  navItem: {
+    alignItems: 'center',
+    flex: 1,
+    padding: 10,
+  },
+  navBar2: {
+    flexDirection: 'row', // Butonların yan yana dizilmesini sağlar
+    justifyContent: 'space-around',
+    backgroundColor: '#ffffff',
+    width: '20%', // Genişliği artırarak iki butonun yan yana sığmasını sağlar
+    paddingVertical: 15,
+    position: 'relative',
+    bottom: 110,
+    left: 60,
+    alignSelf: 'center',
+    borderTopLeftRadius: 40,
+    borderTopRightRadius: 40,
+    borderBottomLeftRadius: 40,
+    borderBottomRightRadius: 40,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: -2},
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 15,
+    marginHorizontal: 5, // Yan boşluk bırakır
+  },
+  navItem2: {
+    alignItems: 'center',
+    flex: 1,
+    padding: 10,
+  },
+  icon: {
+    width: 30,
+    height: 30,
   },
 });
 

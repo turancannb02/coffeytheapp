@@ -33,7 +33,15 @@ interface MainScreenProps {
 }
 
 const MainScreen: React.FC<MainScreenProps> = ({route}) => {
-  const {userData} = route.params;
+  const { userData } = route.params || { userData: null };
+  if (!userData) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>User data is missing!</Text>
+      </View>
+    );
+  }
+
   const [savedFortunes, setSavedFortunes] = useState<string[]>([]);
   const [isFortuneGridVisible, setIsFortuneGridVisible] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -48,6 +56,7 @@ const MainScreen: React.FC<MainScreenProps> = ({route}) => {
   const horoscopeIcon: ImageSourcePropType = require('./assets/horoscope.png');
   const constellationIcon: ImageSourcePropType = require('./assets/constellation.png');
   const closeIcon: ImageSourcePropType = require('./assets/close.png');
+  const closeIcon2: ImageSourcePropType = require('./assets/close.png');
   const backIcon: ImageSourcePropType = require('./assets/back.png');
 
   const services = [
@@ -250,7 +259,9 @@ const MainScreen: React.FC<MainScreenProps> = ({route}) => {
           onPress={() => console.log('Home')}>
           <Image source={homeIcon} style={styles.icon} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={() => setModalVisible(true)}>
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => setModalVisible(true)}>
           <Image source={plusIcon} style={styles.icon} />
         </TouchableOpacity>
         <TouchableOpacity
@@ -268,9 +279,9 @@ const MainScreen: React.FC<MainScreenProps> = ({route}) => {
         style={styles.modal}>
         <View style={styles.modalContent}>
           <TouchableOpacity
-            style={styles.backButton}
+            style={styles.closeButton2}
             onPress={() => setModalVisible(false)}>
-            <Image source={backIcon} style={styles.backIcon} />
+            <Image source={closeIcon2} style={styles.closeIcon2} />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.modalButton}
@@ -503,6 +514,16 @@ const styles = StyleSheet.create({
   backIcon: {
     width: 36,
     height: 36,
+    tintColor: '#fcf4e4',
+  },
+  closeButton2: {
+    position: 'absolute',
+    top: 10,
+    left: 15,
+  },
+  closeIcon2: {
+    width: 40,
+    height: 40,
     tintColor: '#fcf4e4',
   },
   modalButton: {

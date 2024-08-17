@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>523532096471-jei62brpgdc2s6l215vg3m72ehprasvc.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.523532096471-jei62brpgdc2s6l215vg3m72ehprasvc</string>
+	<key>API_KEY</key>
+	<string>AIzaSyAFZdEv-BA4meAYORBXkR4qKrjL6b9krzE</string>
+	<key>GCM_SENDER_ID</key>
+	<string>523532096471</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>fortune-teller.fortune-teller-v1-0</string>
+	<key>PROJECT_ID</key>
+	<string>coffey-3ec22</string>
+	<key>STORAGE_BUCKET</key>
+	<string>coffey-3ec22.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:523532096471:ios:74ef36b7b10ba2c019f192</string>
+	<key>DATABASE_URL</key>
+	<string>https://coffey-3ec22-default-rtdb.europe-west1.firebasedatabase.app</string>
+</dict>
+</plist>

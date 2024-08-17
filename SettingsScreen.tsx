@@ -1,4 +1,3 @@
-// SettingsScreen.js
 import React, {useState, useEffect} from 'react';
 import {
   View,
@@ -16,6 +15,7 @@ import {
 import {useNavigation} from '@react-navigation/native';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import RNPickerSelect from 'react-native-picker-select';
 
 const SettingsScreen = () => {
@@ -29,28 +29,100 @@ const SettingsScreen = () => {
     intention: '',
     birthday: new Date(),
   });
+  const [isLoading, setIsLoading] = useState(false); // Loading state
 
   useEffect(() => {
     const unsubscribe = firestore()
       .collection('users')
-      .doc(auth().currentUser.uid)
+      .doc(auth().currentUser?.uid) // Use optional chaining to ensure currentUser is not null
       .onSnapshot(documentSnapshot => {
-        if (documentSnapshot.exists) {
+        if (documentSnapshot && documentSnapshot.exists) {
           setUserDetails(documentSnapshot.data());
+        } else {
+          console.log('No such document!');
         }
+      }, error => {
+        console.error('Error fetching document:', error);
       });
 
     return () => unsubscribe(); // Detach listener on unmount
   }, []);
 
+
   const handleUpdate = async () => {
+    setIsLoading(true); // Start loading
     const {gender, status, sexualInterest, intention} = userDetails;
-    await firestore()
-      .collection('users')
-      .doc(auth().currentUser.uid)
-      .set({gender, status, sexualInterest, intention}, {merge: true});
-    Alert.alert('Profil Güncellendi', 'Profiliniz başarıyla güncellendi.');
+    try {
+      await firestore()
+        .collection('users')
+        .doc(auth().currentUser.uid)
+        .set({gender, status, sexualInterest, intention}, {merge: true});
+      Alert.alert('Profil Güncellendi', 'Profiliniz başarıyla güncellendi.');
+    } catch (error) {
+      Alert.alert('Hata', 'Profil güncellenirken bir hata oluştu.');
+    } finally {
+      setIsLoading(false); // Stop loading
+    }
   };
+
+  /*
+  const handleDeleteAccount = async () => {
+    Alert.alert(
+      'Hesabı Sil',
+      'Bunu yapmak istediğinize emin misiniz? Tüm verileriniz silinecek.',
+      [
+        { text: 'İptal', style: 'cancel' },
+        {
+          text: 'Evet',
+          onPress: async () => {
+            setIsLoading(true); // Start loading
+            try {
+              const userId = auth().currentUser.uid;
+              const userEmail = auth().currentUser.email; // Capture user email or any other identifying info
+
+              // Store the deletion request in "requested-deletions"
+              await firestore().collection('requested-deletions').doc(userId).set({
+                userId: userId,
+                requestTime: firestore.FieldValue.serverTimestamp(),
+              });
+
+              // Inform the user that the request has been received
+              Alert.alert('Hesap Silme Talebi', 'Hesap silme talebiniz alınmıştır.');
+
+              // Perform Firestore operations before account deletion
+              await firestore().collection('deleted-users').doc(userId).set({
+                userId: userId,
+                email: userEmail,
+                deletionTime: firestore.FieldValue.serverTimestamp(),
+              });
+
+              // Delete Firebase Auth account
+              await auth().currentUser.delete();
+
+              // Navigate to the LoginScreen after deletion
+              setTimeout(() => {
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: 'LoginScreen' }],
+                });
+              }, 1500); // 1.5 seconds delay
+
+            } catch (error) {
+              console.error('Error handling deletion:', error);
+              Alert.alert('Hata', 'Hesap silinirken bir hata oluştu.');
+            } finally {
+              setIsLoading(false); // Stop loading
+            }
+          },
+        },
+      ],
+    );
+  };
+*/
+
+
+
+
 
   const handleChange = (name, value) => {
     setUserDetails(prevDetails => ({...prevDetails, [name]: value}));
@@ -105,6 +177,7 @@ const SettingsScreen = () => {
               {label: 'Diğer', value: 'Diğer'},
             ]}
             placeholder={{label: 'Cinsiyet Seçin', value: null}}
+            value={userDetails.gender}
           />
 
           <Text style={styles.label}>İlişki Durumu</Text>
@@ -119,6 +192,7 @@ const SettingsScreen = () => {
               {label: 'Karmaşık', value: 'Karmaşık'},
             ]}
             placeholder={{label: 'İlişki Durumunuzu Seçin', value: null}}
+            value={userDetails.status}
           />
 
           <Text style={styles.label}>İlgi Alanı</Text>
@@ -131,9 +205,29 @@ const SettingsScreen = () => {
               {label: 'Diğer', value: 'Diğer'},
             ]}
             placeholder={{label: 'İlgi Alanınızı Seçin', value: null}}
+            value={userDetails.sexualInterest}
           />
-          <TouchableOpacity style={styles.updateButton} onPress={handleUpdate}>
-            <Text style={styles.updateButtonText}>Profil Güncelle</Text>
+
+          <TouchableOpacity
+            style={styles.updateButton}
+            onPress={handleUpdate}
+            disabled={isLoading}>
+            {isLoading ? (
+              <ActivityIndicator size="large" color="#fff" />
+            ) : (
+              <Text style={styles.updateButtonText}>Profil Güncelle</Text>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.deleteButton, isLoading && styles.buttonDisabled]}
+            onPress={handleUpdate}
+            disabled={isLoading}>
+            {isLoading ? (
+              <ActivityIndicator size="large" color="#fff" />
+            ) : (
+              <Text style={styles.updateButtonText}>Hesabı Sil</Text>
+            )}
           </TouchableOpacity>
         </View>
 
@@ -186,20 +280,6 @@ const styles = StyleSheet.create({
     color: '#8a4412',
     marginBottom: 10,
   },
-  input: {
-    backgroundColor: 'white',
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    marginBottom: 15,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    elevation: 5,
-  },
   inputNonEditable: {
     backgroundColor: '#e0e0e0',
     paddingHorizontal: 10,
@@ -231,6 +311,21 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: '#fcf4e4',
     fontFamily: 'Nunito-Black',
+  },
+  deleteButton: {
+    backgroundColor: 'rgba(255,0,0,0.87)',
+    borderRadius: 20,
+    padding: 12,
+    alignItems: 'center',
+    marginTop: 20,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
   profilePic: {
     width: 100,
