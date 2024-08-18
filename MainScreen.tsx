@@ -32,8 +32,9 @@ interface MainScreenProps {
   };
 }
 
-const MainScreen: React.FC<MainScreenProps> = ({route}) => {
+const MainScreen: React.FC<MainScreenProps> = ({ route }) => {
   const { userData } = route.params || { userData: null };
+  console.log('MainScreen received userData:', userData);
   if (!userData) {
     return (
       <View style={styles.container}>
@@ -42,11 +43,21 @@ const MainScreen: React.FC<MainScreenProps> = ({route}) => {
     );
   }
 
+
   const [savedFortunes, setSavedFortunes] = useState<string[]>([]);
   const [isFortuneGridVisible, setIsFortuneGridVisible] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [secondModalVisible, setSecondModalVisible] = useState(false);
   const navigation = useNavigation();
+  const navigateToCoffeeCupUploadScreen = () => {
+    console.log('Navigating to CoffeeCupUploadScreen with userData:', userData);
+    navigation.navigate('CoffeeCupUploadScreen', { userData });
+  };
+
+  const navigateToFortuneTellerViewScreen = (fortuneText) => {
+    console.log('Navigating to FortuneTellerViewScreen with userData:', userData);
+    navigation.navigate('FortuneTellerViewScreen', { fortuneText, userData });
+  };
   const homeIcon: ImageSourcePropType = require('./assets/home.png');
   const plusIcon: ImageSourcePropType = require('./assets/plus.png');
   const gearIcon: ImageSourcePropType = require('./assets/gear.png');
@@ -141,11 +152,20 @@ const MainScreen: React.FC<MainScreenProps> = ({route}) => {
     </TouchableOpacity>
   );
 
-  const renderFortuneItem = ({item, index}) => (
+  const updateSavedFortunes = (newFortunes) => {
+    setSavedFortunes(newFortunes);
+  };
+  const renderFortuneItem = ({ item, index }) => (
     <Swipeable renderRightActions={() => renderRightActions(index)}>
       <TouchableOpacity
         style={styles.fortuneItem}
-        onPress={() => navigation.navigate('FortuneTellerViewScreen', {fortuneText: item})}>
+        onPress={() =>
+          navigation.navigate('FortuneTellerViewScreen', {
+            fortuneText: item,
+            userData,
+            updateSavedFortunes, // Pass the callback function
+          })
+        }>
         <Text style={styles.fortuneItemText}>Fal #{index + 1}</Text>
         <Text style={styles.fortuneItemPreview}>{item.substring(0, 60)}...</Text>
       </TouchableOpacity>

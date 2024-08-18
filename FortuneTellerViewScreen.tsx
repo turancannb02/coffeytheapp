@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -11,8 +11,24 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const FortuneTellerViewScreen = ({navigation, route}) => {
-  const {fortuneText} = route.params;
+const FortuneTellerViewScreen = ({ navigation, route }) => {
+  const { fortuneText } = route.params;
+  const [savedFortunes, setSavedFortunes] = useState([]);
+
+  useEffect(() => {
+    const loadSavedFortunes = async () => {
+      try {
+        const storedFortunes = await AsyncStorage.getItem('savedFortunes');
+        if (storedFortunes) {
+          setSavedFortunes(JSON.parse(storedFortunes));
+        }
+      } catch (error) {
+        console.error('Error loading saved fortunes:', error);
+      }
+    };
+
+    loadSavedFortunes();
+  }, []);
 
   const handleShare = async () => {
     try {
@@ -35,13 +51,9 @@ const FortuneTellerViewScreen = ({navigation, route}) => {
 
   const handleSave = async () => {
     try {
-      let savedFortunes = await AsyncStorage.getItem('savedFortunes');
-      savedFortunes = savedFortunes ? JSON.parse(savedFortunes) : [];
-      savedFortunes.push(fortuneText);
-      await AsyncStorage.setItem(
-        'savedFortunes',
-        JSON.stringify(savedFortunes),
-      );
+      const updatedFortunes = [...savedFortunes, fortuneText];
+      await AsyncStorage.setItem('savedFortunes', JSON.stringify(updatedFortunes));
+      setSavedFortunes(updatedFortunes);
       Alert.alert('Falınız kaydedildi!');
     } catch (error) {
       Alert.alert('Kayıt hatası', error.message);
@@ -68,12 +80,13 @@ const FortuneTellerViewScreen = ({navigation, route}) => {
       </View>
       <TouchableOpacity
         style={styles.button}
-        onPress={() => navigation.navigate('Main')}>
+        onPress={() => navigation.navigate('Main', { userData: route.params.userData })}>
         <Text style={styles.buttonText}>Ana Menüye Dön</Text>
       </TouchableOpacity>
     </ScrollView>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {

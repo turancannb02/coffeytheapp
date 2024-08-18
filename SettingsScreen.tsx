@@ -34,19 +34,38 @@ const SettingsScreen = () => {
   useEffect(() => {
     const unsubscribe = firestore()
       .collection('users')
-      .doc(auth().currentUser?.uid) // Use optional chaining to ensure currentUser is not null
-      .onSnapshot(documentSnapshot => {
-        if (documentSnapshot && documentSnapshot.exists) {
-          setUserDetails(documentSnapshot.data());
-        } else {
-          console.log('No such document!');
-        }
-      }, error => {
-        console.error('Error fetching document:', error);
-      });
+      .doc(auth().currentUser?.uid)
+      .onSnapshot(
+        documentSnapshot => {
+          if (documentSnapshot && documentSnapshot.exists) {
+            setUserDetails(documentSnapshot.data());
+          } else {
+            console.log('No such document!');
+          }
+        },
+        error => {
+          console.error('Error fetching document:', error);
+        },
+      );
 
-    return () => unsubscribe(); // Detach listener on unmount
+    return () => unsubscribe();
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      setIsLoading(true);
+      await AsyncStorage.removeItem('userId'); // Clear only the userId, not all data
+      await auth().signOut(); // Sign out the user from Firebase Auth
+      navigation.reset({
+        index: 0,
+        routes: [{name: 'Login'}],
+      });
+    } catch (error) {
+      Alert.alert('Hata', 'Çıkış yapılırken bir hata oluştu.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
 
   const handleUpdate = async () => {
@@ -119,10 +138,6 @@ const SettingsScreen = () => {
     );
   };
 */
-
-
-
-
 
   const handleChange = (name, value) => {
     setUserDetails(prevDetails => ({...prevDetails, [name]: value}));
@@ -220,13 +235,13 @@ const SettingsScreen = () => {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.deleteButton, isLoading && styles.buttonDisabled]}
-            onPress={handleUpdate}
+            style={styles.logoutButton}
+            onPress={handleLogout}
             disabled={isLoading}>
             {isLoading ? (
               <ActivityIndicator size="large" color="#fff" />
             ) : (
-              <Text style={styles.updateButtonText}>Hesabı Sil</Text>
+              <Text style={styles.updateButtonText}>Çıkış Yap</Text>
             )}
           </TouchableOpacity>
         </View>
@@ -350,6 +365,18 @@ const styles = StyleSheet.create({
   emailLink: {
     color: '#0000ee',
     textDecorationLine: 'underline',
+  },
+  logoutButton: {
+    backgroundColor: '#e63946',
+    borderRadius: 20,
+    padding: 12,
+    alignItems: 'center',
+    marginTop: 20,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5,
   },
 });
 
