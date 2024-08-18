@@ -68,6 +68,7 @@ const RegistrationScreen = ({ navigation }) => {
           birthday: birthday.toISOString(),
         };
         await saveUserData(userId, userData, deviceDetails);
+        console.log('Navigating to Main with userData:', userData);
         setIsLoading(false); // Stop loading
         navigation.navigate('Main', { userData });
       } else {
@@ -85,6 +86,7 @@ const RegistrationScreen = ({ navigation }) => {
       );
     }
   };
+
 
   const formatDate = date => {
     return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;

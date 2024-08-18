@@ -1,4 +1,3 @@
-// App.tsx
 import React, {useEffect} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
@@ -11,6 +10,7 @@ import FortuneLoadingScreen from './FortuneLoadingScreen';
 import FortuneTellerViewScreen from './FortuneTellerViewScreen';
 import SettingsScreen from './SettingsScreen';
 import messaging from '@react-native-firebase/messaging';
+import {initializeUser} from './my-backend/initializeUser'; // Adjust the path if necessary
 
 const Stack = createStackNavigator();
 
@@ -33,6 +33,7 @@ const App: React.FC = () => {
   useEffect(() => {
     requestUserPermission();
     getToken();
+    initializeUser(); // Initialize the anonymous user
   }, []);
 
   return (

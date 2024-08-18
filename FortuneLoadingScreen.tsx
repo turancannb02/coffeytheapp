@@ -19,6 +19,7 @@ const FortuneLoadingScreen = ({ navigation, route }) => {
   const [fcmToken, setFcmToken] = useState('');
 
   useEffect(() => {
+    console.log('FortuneLoadingScreen received userData:', userData);
     fetchFortune();
   }, []);
 
@@ -26,7 +27,7 @@ const FortuneLoadingScreen = ({ navigation, route }) => {
     try {
       console.log('User Data:', userData);
       const zodiacSign = getZodiacSign(new Date(userData.birthday));
-      const prompt = `Görselleri bir falcı gibi yorumla. Kullanıcının adı ${userData.name}, yaşı ${userData.age}, cinsiyeti ${userData.gender}, ilgi alanı ${userData.sexualInterest}, ilişki durumu ${userData.status}, falın amacı ${userData.intention}, ve burcu ${zodiacSign}. Samimi bir dil kullan ve kullanıcıların duymak isteyeceği şeyleri belirt. Yorumlamayı profesyonel yap ve genel olarak giriş, gelişme ve sonuç paragraflarından oluşsun istiyorum.`;
+      const prompt = 'Görselleri bir falcı gibi yorumla. Kullanıcının adı ${userData.name}, yaşı ${userData.age}, cinsiyeti ${userData.gender}, ilgi alanı ${userData.sexualInterest}, ilişki durumu ${userData.status}, falın amacı ${userData.intention}, ve burcu ${zodiacSign}. Samimi bir dil kullan ve kullanıcıların duymak isteyeceği şeyleri belirt. Yorumlamayı profesyonel yap ve genel olarak giriş, gelişme ve sonuç paragraflarından oluşsun istiyorum.';
 
       const responseText = await getFortuneText(prompt);
       if (responseText) {
@@ -86,7 +87,7 @@ const FortuneLoadingScreen = ({ navigation, route }) => {
             fortuneReady ? styles.buttonActive : styles.buttonDisabled,
           ]}
           onPress={() =>
-            navigation.navigate('FortuneTellerViewScreen', { fortuneText })
+            navigation.navigate('FortuneTellerViewScreen', { fortuneText, userData })
           }
           disabled={!fortuneReady}
         >
