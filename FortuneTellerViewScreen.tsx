@@ -68,7 +68,13 @@ const FortuneTellerViewScreen = ({navigation, route}) => {
       </View>
       <TouchableOpacity
         style={styles.button}
-        onPress={() => navigation.navigate('Main')}>
+        onPress={() => {
+          console.log(
+            'Navigating back to MainScreen with userData:',
+            route.params.userData,
+          );
+          navigation.navigate('Main', {userData: route.params.userData});
+        }}>
         <Text style={styles.buttonText}>Ana Menüye Dön</Text>
       </TouchableOpacity>
     </ScrollView>
