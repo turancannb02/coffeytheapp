@@ -1,6 +1,6 @@
 // RegistrationScreen.js
 
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -15,9 +15,9 @@ import {
 } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import {signInAnonymously, saveUserData} from './authService';
+import { signInAnonymously, saveUserData } from './authService';
 
-const RegistrationScreen = ({navigation}) => {
+const RegistrationScreen = ({ navigation }) => {
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
   const [gender, setGender] = useState('');
@@ -46,8 +46,8 @@ const RegistrationScreen = ({navigation}) => {
       'Çıkış Yap',
       'Emin misiniz? İptal ederseniz girdiğiniz bilgiler silinecektir.',
       [
-        {text: 'İptal', style: 'cancel'},
-        {text: 'Evet', onPress: () => navigation.goBack()},
+        { text: 'İptal', style: 'cancel' },
+        { text: 'Evet', onPress: () => navigation.goBack() },
       ],
     );
   };
@@ -56,7 +56,7 @@ const RegistrationScreen = ({navigation}) => {
     setIsLoading(true); // Start loading
 
     try {
-      const {userId, deviceDetails} = await signInAnonymously();
+      const { userId, deviceDetails } = await signInAnonymously();
       if (userId && deviceDetails) {
         const userData = {
           name,
@@ -68,9 +68,8 @@ const RegistrationScreen = ({navigation}) => {
           birthday: birthday.toISOString(),
         };
         await saveUserData(userId, userData, deviceDetails);
-        console.log('Navigating to Main with userData:', userData);
         setIsLoading(false); // Stop loading
-        navigation.navigate('Main', {userData});
+        navigation.navigate('Main', { userData });
       } else {
         setIsLoading(false); // Stop loading
         Alert.alert(
@@ -150,11 +149,11 @@ const RegistrationScreen = ({navigation}) => {
             style={pickerSelectStyles}
             onValueChange={setGender}
             items={[
-              {label: 'Erkek', value: 'Erkek'},
-              {label: 'Kadın', value: 'Kadın'},
-              {label: 'Diğer', value: 'Diğer'},
+              { label: 'Erkek', value: 'Erkek' },
+              { label: 'Kadın', value: 'Kadın' },
+              { label: 'Diğer', value: 'Diğer' },
             ]}
-            placeholder={{label: 'Cinsiyet Seçin', value: null}}
+            placeholder={{ label: 'Cinsiyet Seçin', value: null }}
             disabled={isLoading} // Disable picker during loading
           />
 
@@ -163,14 +162,14 @@ const RegistrationScreen = ({navigation}) => {
             style={pickerSelectStyles}
             onValueChange={setStatus}
             items={[
-              {label: 'Bekar', value: 'Bekar'},
-              {label: 'Evli', value: 'Evli'},
-              {label: 'Nişanlı', value: 'Nişanlı'},
-              {label: 'Boşanmış', value: 'Boşanmış'},
-              {label: 'Karmaşık', value: 'Karmaşık'},
-              {label: 'Diğer', value: 'Diğer'},
+              { label: 'Bekar', value: 'Bekar' },
+              { label: 'Evli', value: 'Evli' },
+              { label: 'Nişanlı', value: 'Nişanlı' },
+              { label: 'Boşanmış', value: 'Boşanmış' },
+              { label: 'Karmaşık', value: 'Karmaşık' },
+              { label: 'Diğer', value: 'Diğer' },
             ]}
-            placeholder={{label: 'İlişki Durumunuzu Seçin', value: null}}
+            placeholder={{ label: 'İlişki Durumunuzu Seçin', value: null }}
             disabled={isLoading} // Disable picker during loading
           />
 
@@ -179,11 +178,11 @@ const RegistrationScreen = ({navigation}) => {
             style={pickerSelectStyles}
             onValueChange={setSexualInterest}
             items={[
-              {label: 'Erkekler', value: 'Erkekler'},
-              {label: 'Kadınlar', value: 'Kadınlar'},
-              {label: 'Diğer', value: 'Diğer'},
+              { label: 'Erkekler', value: 'Erkekler' },
+              { label: 'Kadınlar', value: 'Kadınlar' },
+              { label: 'Diğer', value: 'Diğer' },
             ]}
-            placeholder={{label: 'İlgi Alanınızı Seçin', value: null}}
+            placeholder={{ label: 'İlgi Alanınızı Seçin', value: null }}
             disabled={isLoading} // Disable picker during loading
           />
 
@@ -192,12 +191,12 @@ const RegistrationScreen = ({navigation}) => {
             style={pickerSelectStyles}
             onValueChange={setIntention}
             items={[
-              {label: 'Genel', value: 'Genel'},
-              {label: 'Aşk', value: 'Aşk'},
-              {label: 'Kariyer', value: 'Kariyer'},
-              {label: 'Sağlık', value: 'Sağlık'},
+              { label: 'Genel', value: 'Genel' },
+              { label: 'Aşk', value: 'Aşk' },
+              { label: 'Kariyer', value: 'Kariyer' },
+              { label: 'Sağlık', value: 'Sağlık' },
             ]}
-            placeholder={{label: 'Falın Amacını Seçin', value: null}}
+            placeholder={{ label: 'Falın Amacını Seçin', value: null }}
             disabled={isLoading} // Disable picker during loading
           />
         </View>
@@ -209,7 +208,8 @@ const RegistrationScreen = ({navigation}) => {
             isFormValid ? styles.buttonActive : styles.buttonInactive,
           ]}
           onPress={handleRegister}
-          disabled={!isFormValid || isLoading}>
+          disabled={!isFormValid || isLoading}
+        >
           {isLoading ? (
             <ActivityIndicator size="large" color="#000" />
           ) : (
