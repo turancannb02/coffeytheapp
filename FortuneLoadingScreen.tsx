@@ -19,7 +19,6 @@ const FortuneLoadingScreen = ({ navigation, route }) => {
   const [fcmToken, setFcmToken] = useState('');
 
   useEffect(() => {
-    console.log('FortuneLoadingScreen received userData:', userData);
     fetchFortune();
   }, []);
 
@@ -87,7 +86,7 @@ const FortuneLoadingScreen = ({ navigation, route }) => {
             fortuneReady ? styles.buttonActive : styles.buttonDisabled,
           ]}
           onPress={() =>
-            navigation.navigate('FortuneTellerViewScreen', { fortuneText, userData })
+            navigation.navigate('FortuneTellerViewScreen', { fortuneText })
           }
           disabled={!fortuneReady}
         >

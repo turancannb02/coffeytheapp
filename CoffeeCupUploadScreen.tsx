@@ -78,11 +78,10 @@ const CoffeeCupUploadScreen = ({route}) => {
 
   const handleSubmit = () => {
     setLoading(true); // Start loading
-    console.log('Navigating to FortuneLoadingScreen with userData:', userData);
     setTimeout(() => {
       setLoading(false); // Stop loading after 3 seconds
-      navigation.navigate('FortuneLoadingScreen', { images, userData });
-    }, 1000); // 3-second delay
+      navigation.navigate('FortuneLoadingScreen', {images, userData});
+    }, 3000); // 3-second delay
   };
 
   return (
