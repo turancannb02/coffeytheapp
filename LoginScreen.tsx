@@ -1,6 +1,26 @@
 import React, {useState} from 'react';
 import {View, Text, TouchableOpacity, StyleSheet, Image} from 'react-native';
 import Modal from 'react-native-modal';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import auth from '@react-native-firebase/auth';
+
+GoogleSignin.configure({
+  webClientId: '523532096471-lf9fvd32luk7e0rtsnu3fjv1pnqou8lv.apps.googleusercontent.com', // Replace with your web client ID
+});
+
+const onGoogleButtonPress = async () => {
+  try {
+    await GoogleSignin.hasPlayServices();
+    const { idToken } = await GoogleSignin.signIn();
+    const googleCredential = auth.GoogleAuthProvider.credential(idToken);
+    await auth().signInWithCredential(googleCredential);
+    navigation.navigate('HomeScreen');
+  } catch (error) {
+    console.error('Google Sign-In Error: ', error);
+    alert('Google Sign-In failed. Please try again.');
+  }
+};
+
 
 const LoginScreen: React.FC<{navigation: any}> = ({navigation}) => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -32,15 +52,12 @@ const LoginScreen: React.FC<{navigation: any}> = ({navigation}) => {
           <View style={styles.authButtonsContainer}>
             <TouchableOpacity
               style={styles.authButton}
-              onPress={() => {
-                setModalVisible(false);
-                navigation.navigate('SomeScreenForGoogleLogin');
-              }}>
+              onPress={onGoogleButtonPress}>
               <Image
                 source={require('./assets/google_icon.png')}
                 style={styles.iconStyle}
               />
-              <Text style={styles.authButtonText}>Google ile Giriş Yapınız</Text>
+              <Text style={styles.authButtonText}>Google ile Giriş Yap</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.authButton}

@@ -13,7 +13,7 @@ import {
 import {useNavigation} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import LinearGradient from 'react-native-linear-gradient';
-import {Swipeable} from 'react-native-gesture-handler';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import Modal from 'react-native-modal';
 
 interface MainScreenProps {
@@ -156,6 +156,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ route }) => {
     setSavedFortunes(newFortunes);
   };
   const renderFortuneItem = ({ item, index }) => (
+    <GestureHandlerRootView>
     <Swipeable renderRightActions={() => renderRightActions(index)}>
       <TouchableOpacity
         style={styles.fortuneItem}
@@ -170,6 +171,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ route }) => {
         <Text style={styles.fortuneItemPreview}>{item.substring(0, 60)}...</Text>
       </TouchableOpacity>
     </Swipeable>
+  </GestureHandlerRootView>
   );
 
   const Header = () => (
