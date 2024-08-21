@@ -2,8 +2,7 @@
 
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
-import { getDeviceDetails, setDeviceDetails } from './deviceService';
-import { saveUserData, getUserData } from './storageService';
+import { getDeviceDetails, setDeviceDetails, saveUserData as saveUserDataStorage } from './deviceService';
 
 export const autoSignIn = async () => {
   try {
@@ -11,8 +10,8 @@ export const autoSignIn = async () => {
     const deviceDetails = await getDeviceDetails();
 
     if (userCredential && deviceDetails) {
-      const userID= userCredential.userId;
-      const deviceID= deviceDetails.PErsistentDeviceID;
+      const userID = userCredential.userId;
+      const deviceID = deviceDetails.PErsistentDeviceID;
 
       if (userID && deviceID) {
         // Auto sign in using the retrieved user and device details
@@ -29,7 +28,8 @@ export const autoSignIn = async () => {
   }
 };
 
-const saveUserData = async (userId, userData, deviceData)=> {
+// Renamed function to avoid conflict with the imported one
+const saveUserAndDeviceData = async (userId, userData, deviceData) => {
   try {
     const fullUserData = { ...userData, device: deviceData };
     await firestore().collection('users').doc(userId).set(fullUserData, { merge: false });
@@ -39,4 +39,4 @@ const saveUserData = async (userId, userData, deviceData)=> {
   }
 };
 
-export default saveUserData;
+export default saveUserAndDeviceData;
