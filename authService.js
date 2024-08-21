@@ -1,37 +1,29 @@
-// services/authService.js
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import auth from '@react-native-firebase/auth';
-import firestore from '@react-native-firebase/firestore';
-import {getDeviceDetails} from './deviceService';
-
-
-export const signInAnonymously = async () => {
+// Save user data after login/register
+export const saveUserData = async (user) => {
   try {
-    // Ensure the current user is signed out before signing in a new anonymous user
-    if (auth().currentUser) {
-      await auth().signOut();
-    }
-
-    const userCredential = await auth().signInAnonymously();
-    const deviceDetails = await getDeviceDetails(); // Fetch device details during sign-in
-    return {userId: userCredential.user.uid, deviceDetails};
+    await AsyncStorage.setItem('userData', JSON.stringify(user));
   } catch (error) {
-    console.error('Error signing in anonymously:', error);
-    return null;
+    console.error('Error saving user data', error);
   }
 };
 
-export const saveUserData = async (userId, userData, deviceData) => {
+// Retrieve user data
+export const getUserData = async () => {
   try {
-    // Combine user data with device data
-    const fullUserData = {...userData, device: deviceData};
-    // Use set() with merge: false to ensure it always creates a new document or fully replaces an existing one
-    await firestore()
-        .collection('test-users')
-        .doc(userId)
-        .set(fullUserData, {merge: false});
-    console.log('User and device data saved successfully');
+    const userData = await AsyncStorage.getItem('userData');
+    return userData ? JSON.parse(userData): null;
   } catch (error) {
-    console.error('Error saving user and device data:', error);
+    console.error('Error retrieving user data', error);
+  }
+};
+
+// Clear user data on logout
+export const clearUserData = async () => {
+   try {
+      await AsyncStorage.removeItem('userData');
+  } catch (error) {
+      console.error('Error clearing user data', error);
   }
 };
