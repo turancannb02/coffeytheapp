@@ -32,9 +32,10 @@ interface MainScreenProps {
   };
 }
 
-const MainScreen: React.FC<MainScreenProps> = ({ route }) => {
-  const { userData } = route.params || { userData: null };
+const MainScreen: React.FC<MainScreenProps> = ({route}) => {
+  const {userData} = route.params || {userData: null};
   console.log('MainScreen received userData:', userData);
+
   if (!userData) {
     return (
       <View style={styles.container}>
@@ -43,7 +44,6 @@ const MainScreen: React.FC<MainScreenProps> = ({ route }) => {
     );
   }
 
-
   const [savedFortunes, setSavedFortunes] = useState<string[]>([]);
   const [isFortuneGridVisible, setIsFortuneGridVisible] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -51,12 +51,15 @@ const MainScreen: React.FC<MainScreenProps> = ({ route }) => {
   const navigation = useNavigation();
   const navigateToCoffeeCupUploadScreen = () => {
     console.log('Navigating to CoffeeCupUploadScreen with userData:', userData);
-    navigation.navigate('CoffeeCupUploadScreen', { userData });
+    navigation.navigate('CoffeeCupUploadScreen', {userData});
   };
 
-  const navigateToFortuneTellerViewScreen = (fortuneText) => {
-    console.log('Navigating to FortuneTellerViewScreen with userData:', userData);
-    navigation.navigate('FortuneTellerViewScreen', { fortuneText, userData });
+  const navigateToFortuneTellerViewScreen = fortuneText => {
+    console.log(
+      'Navigating to FortuneTellerViewScreen with userData:',
+      userData,
+    );
+    navigation.navigate('FortuneTellerViewScreen', {fortuneText, userData});
   };
   const homeIcon: ImageSourcePropType = require('./assets/home.png');
   const plusIcon: ImageSourcePropType = require('./assets/plus.png');
@@ -122,7 +125,10 @@ const MainScreen: React.FC<MainScreenProps> = ({ route }) => {
   const deleteFortune = async (index: number) => {
     const updatedFortunes = savedFortunes.filter((_, i) => i !== index);
     setSavedFortunes(updatedFortunes);
-    await AsyncStorage.setItem('savedFortunes', JSON.stringify(updatedFortunes));
+    await AsyncStorage.setItem(
+      'savedFortunes',
+      JSON.stringify(updatedFortunes),
+    );
   };
 
   const handleDeleteConfirmation = (index: number) => {
@@ -152,10 +158,10 @@ const MainScreen: React.FC<MainScreenProps> = ({ route }) => {
     </TouchableOpacity>
   );
 
-  const updateSavedFortunes = (newFortunes) => {
+  const updateSavedFortunes = newFortunes => {
     setSavedFortunes(newFortunes);
   };
-  const renderFortuneItem = ({ item, index }) => (
+  const renderFortuneItem = ({item, index}) => (
     <Swipeable renderRightActions={() => renderRightActions(index)}>
       <TouchableOpacity
         style={styles.fortuneItem}
@@ -167,7 +173,9 @@ const MainScreen: React.FC<MainScreenProps> = ({ route }) => {
           })
         }>
         <Text style={styles.fortuneItemText}>Fal #{index + 1}</Text>
-        <Text style={styles.fortuneItemPreview}>{item.substring(0, 60)}...</Text>
+        <Text style={styles.fortuneItemPreview}>
+          {item.substring(0, 60)}...
+        </Text>
       </TouchableOpacity>
     </Swipeable>
   );
@@ -256,7 +264,8 @@ const MainScreen: React.FC<MainScreenProps> = ({ route }) => {
                 ) : (
                   <View style={styles.noFortunesContainer}>
                     <Text style={styles.noFortunesText}>
-                      Kayıtlı falınız bulunmamaktadır. Hemen +'ya basınız ve falınızı baktırınız.
+                      Kayıtlı falınız bulunmamaktadır. Hemen +'ya basınız ve
+                      falınızı baktırınız.
                     </Text>
                   </View>
                 )}

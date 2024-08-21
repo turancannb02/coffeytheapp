@@ -1,14 +1,19 @@
 import React, { useEffect, useMemo } from 'react';
 import { View, StyleSheet, Animated, ImageBackground, Text } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { getUserData } from './authService';
 
-const SplashScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
+const SplashScreen: React.FC = () => {
+  const navigation = useNavigation();
+
   const fadeAnim = useMemo(() => new Animated.Value(0), []);
-  const scaleAnim = useMemo(() => new Animated.Value(1.2), []); // Starting bigger and shrinking down
+  const scaleAnim = useMemo(() => new Animated.Value(1.2), []); // Start larger
 
   useEffect(() => {
+    // Start the animation
     const animations = Animated.sequence([
       Animated.timing(scaleAnim, {
-        toValue: 1, // Animate scale to normal size
+        toValue: 1, // Scale to normal size
         duration: 1000,
         useNativeDriver: true,
       }),
@@ -19,31 +24,44 @@ const SplashScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       }),
     ]);
 
-    animations.start(() => navigation.navigate('Login')); // Navigate to Login after animations
+    animations.start(async () => {
+      const userData = await getUserData();
+      if (userData) {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Main', params: { userData } }],
+        });
+      } else {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Login' }],
+        });
+      }
+    });
 
     return () => animations.stop(); // Clean up the animation on unmount
   }, [navigation, fadeAnim, scaleAnim]);
 
   return (
-    <ImageBackground
-      source={require('./assets/background-3.png')}
-      style={styles.background}
-      resizeMode="cover">
-      <View style={styles.overlay}>
-        <View style={styles.splashContainer}>
-          <Animated.Text
-            style={[
-              styles.title,
-              {
-                opacity: fadeAnim, // Fade in the text
-                transform: [{ scale: scaleAnim }], // Scale the text
-              },
-            ]}>
-            Coffey'e Hoşgeldiniz!
-          </Animated.Text>
+      <ImageBackground
+          source={require('./assets/background-3.png')}
+          style={styles.background}
+          resizeMode="cover">
+        <View style={styles.overlay}>
+          <View style={styles.splashContainer}>
+            <Animated.Text
+                style={[
+                  styles.title,
+                  {
+                    opacity: fadeAnim, // Fade in the text
+                    transform: [{ scale: scaleAnim }], // Scale the text
+                  },
+                ]}>
+              Coffey'e Hoşgeldiniz!
+            </Animated.Text>
+          </View>
         </View>
-      </View>
-    </ImageBackground>
+      </ImageBackground>
   );
 };
 

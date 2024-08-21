@@ -101,7 +101,7 @@ const FortuneTellerViewScreen = ({navigation, route}) => {
       <TouchableOpacity
         style={styles.button}
         onPress={() =>
-          navigation.navigate('Main', {userData: route.params.userData})
+          navigation.navigate('Main', {userData: user})
         }>
         <Text style={styles.buttonText}>Ana Menüye Dön</Text>
       </TouchableOpacity>
