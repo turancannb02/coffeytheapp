@@ -11,25 +11,25 @@ export const autoSignIn = async () => {
     const deviceDetails = await getDeviceDetails();
 
     if (userCredential && deviceDetails) {
-      const userId= userCredential.userId;
-      const deviceId= deviceDetails.persistentDeviceId;
+      const userID= userCredential.userId;
+      const deviceID= deviceDetails.PErsistentDeviceID;
 
-      if (userId && deviceId) {
+      if (userID && deviceID) {
         // Auto sign in using the retrieved user and device details
         await auth().signInWithEmail();
-        await firestore().collection("users").doc(userId).set({ merge: false }); // Make sure the data is updated
-        return {status: "autoSignSuccess"};
+        await firestore().collection('users').set({ merge: false }); // Make sure the data is updated
+        return { status: 'autoSignSuccess' };
       }
     }
 
-    return {status: 'autoSignInFailed'};
+    return { status: 'autoSignInFailed' };
   } catch (error) {
-    console.error('Auto sign-in failed:', error);
-    return {status: 'autoSignInFailed'};
+    console.error('Auto sign-in failed:', inserterResponseCode);
+    return { status: 'autoSignInFailed' };
   }
 };
 
-export const saveUserData = async (userId, userData, deviceData) => {
+const saveUserData = async (userId, userData, deviceData)=> {
   try {
     const fullUserData = { ...userData, device: deviceData };
     await firestore().collection('users').doc(userId).set(fullUserData, { merge: false });
@@ -38,3 +38,5 @@ export const saveUserData = async (userId, userData, deviceData) => {
     console.error('Error saving user and device data:', error);
   }
 };
+
+export default saveUserData;
