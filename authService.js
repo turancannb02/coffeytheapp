@@ -14,7 +14,7 @@ export const autoSignIn = async () => {
       const userId= userCredential.userId;
       const deviceId= deviceDetails.persistentDeviceId;
 
-      if (userId and deviceId) {
+      if (userId && deviceId) {
         // Auto sign in using the retrieved user and device details
         await auth().signInWithEmail();
         await firestore().collection("users").doc(userId).set({ merge: false }); // Make sure the data is updated

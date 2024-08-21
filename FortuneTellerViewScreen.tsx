@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -10,9 +10,10 @@ import {
   Alert,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {saveFortune} from './authService'; // Import the saveFortune function
 
-const FortuneTellerViewScreen = ({ navigation, route }) => {
-  const { fortuneText } = route.params;
+const FortuneTellerViewScreen = ({navigation, route}) => {
+  const {fortuneText, userId} = route.params;
   const [savedFortunes, setSavedFortunes] = useState([]);
 
   useEffect(() => {
@@ -24,6 +25,8 @@ const FortuneTellerViewScreen = ({ navigation, route }) => {
         }
       } catch (error) {
         console.error('Error loading saved fortunes:', error);
+        console.log("FortuneTellerViewScreen received fortuneText:", route.params.fortuneText);
+        console.log("FORTUNE_OUTPUT:", route.params.fortuneText);  // Log with FORTUNE_OUTPUT prefix
       }
     };
 
@@ -37,12 +40,12 @@ const FortuneTellerViewScreen = ({ navigation, route }) => {
       });
       if (result.action === Share.sharedAction) {
         if (result.activityType) {
-          // shared with activity type of result.activityType
+          // Shared with activity type of result.activityType
         } else {
-          // shared
+          // Shared
         }
       } else if (result.action === Share.dismissedAction) {
-        // dismissed
+        // Dismissed
       }
     } catch (error) {
       Alert.alert('Paylaşma hatası', error.message);
@@ -52,9 +55,26 @@ const FortuneTellerViewScreen = ({ navigation, route }) => {
   const handleSave = async () => {
     try {
       const updatedFortunes = [...savedFortunes, fortuneText];
-      await AsyncStorage.setItem('savedFortunes', JSON.stringify(updatedFortunes));
+      await AsyncStorage.setItem(
+        'savedFortunes',
+        JSON.stringify(updatedFortunes),
+      );
       setSavedFortunes(updatedFortunes);
-      Alert.alert('Falınız kaydedildi!');
+
+      // Save the fortune to Firestore
+      if (userId) {
+        await saveFortune(userId, fortuneText)
+          .then(() => {
+            console.log('Fortune saved to Firestore successfully');
+          })
+          .catch(error => {
+            console.error('Error saving fortune to Firestore:', error);
+          });
+      } else {
+        console.error('userId is missing or undefined');
+      }
+
+      Alert.alert('Başarı', 'Falınız kaydedildi!');
     } catch (error) {
       Alert.alert('Kayıt hatası', error.message);
     }
@@ -65,7 +85,7 @@ const FortuneTellerViewScreen = ({ navigation, route }) => {
       style={styles.container}
       contentContainerStyle={styles.scrollViewContent}>
       <View style={styles.headerContainer}>
-        <Text style={styles.headerText}>Fal Yorumunuz</Text>
+        <Text style={styles.headerText}>Fal Yorumu</Text>
         <View style={styles.iconContainer}>
           <TouchableOpacity onPress={handleSave}>
             <Image source={require('./assets/star.png')} style={styles.icon} />
@@ -80,13 +100,14 @@ const FortuneTellerViewScreen = ({ navigation, route }) => {
       </View>
       <TouchableOpacity
         style={styles.button}
-        onPress={() => navigation.navigate('Main', { userData: route.params.userData })}>
+        onPress={() =>
+          navigation.navigate('Main', {userData: route.params.userData})
+        }>
         <Text style={styles.buttonText}>Ana Menüye Dön</Text>
       </TouchableOpacity>
     </ScrollView>
   );
 };
-
 
 const styles = StyleSheet.create({
   container: {
@@ -96,12 +117,11 @@ const styles = StyleSheet.create({
   },
   scrollViewContent: {
     flexGrow: 1,
-    justifyContent: 'space-between', // Ensures content is spread across the screen
+    justifyContent: 'space-between',
   },
   headerContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
     marginBottom: 20,
   },
   headerText: {
@@ -143,6 +163,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     alignItems: 'center',
     justifyContent: 'center',
+    alignSelf: 'center',
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.25,

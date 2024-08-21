@@ -1,69 +1,76 @@
-import React, { useState, useEffect } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ActivityIndicator,
   TouchableOpacity,
-  Image, // Import the Image component
+  Image,
 } from 'react-native';
-import getFortuneText from './getFortuneText';
-import { getZodiacSign } from './zodiacUtils';
-import messaging from '@react-native-firebase/messaging';
+import auth from '@react-native-firebase/auth';
+import getFortuneText from './getFortuneText'; // Assuming this is the function that fetches the fortune
+import {getZodiacSign} from './zodiacUtils'; // Adjust the path if necessary
+import { saveFortune } from './authService'; // Import saveFortune from authService
 
-const FortuneLoadingScreen = ({ navigation, route }) => {
-  const { images, userData } = route.params;
+const FortuneLoadingScreen = ({navigation, route}) => {
+  const {userData} = route.params;
   const [loading, setLoading] = useState(true);
   const [fortuneReady, setFortuneReady] = useState(false);
   const [fortuneText, setFortuneText] = useState('');
-  const [fcmToken, setFcmToken] = useState('');
+  const [userId, setUserId] = useState('');
 
   useEffect(() => {
-    console.log('FortuneLoadingScreen received userData:', userData);
+    const fetchFortune = async () => {
+      try {
+        console.log('User Data:', userData);
+
+        const currentUser = auth().currentUser;
+        if (currentUser) {
+          setUserId(currentUser.uid);
+        } else {
+          console.error("No user is currently signed in.");
+        }
+
+        const zodiacSign = getZodiacSign(new Date(userData.birthday));
+        const prompt = `Görselleri bir falcı gibi yorumla. Kullanıcı: ${userData.name}, yaş: ${userData.age}, cinsiyet: ${userData.gender}, ilgi alanı: ${userData.sexualInterest}, ilişki durumu: ${userData.status}, falını amaçla ${userData.intention}, ve burcu ${zodiacSign}. Samimi bir dil kullan ve kullanıcının isteklerine uygun bir fal sun.`;
+
+        const responseText = await getFortuneText(prompt);
+        if (responseText) {
+          console.log("FORTUNE_OUTPUT:", responseText);  // Log the fortune output
+          setFortuneText(responseText);
+
+          // Save the fortune to Firestore
+          if (userId) {
+            await saveFortune(userId, responseText)
+                .then(() => {
+                  console.log('Fortune saved to Firestore successfully');
+                })
+                .catch((error) => {
+                  console.error('Error saving fortune to Firestore:', error);
+                });
+          } else {
+            console.error("User ID is missing, cannot save fortune.");
+          }
+        } else {
+          throw new Error('Failed to get a valid response from OpenAI.');
+        }
+      } catch (error) {
+        console.error('Error fetching fortune:', error);
+      }
+    };
+
     fetchFortune();
-  }, []);
+  }, [userData]);
 
-  const fetchFortune = async () => {
-    try {
-      console.log('User Data:', userData);
-      const zodiacSign = getZodiacSign(new Date(userData.birthday));
-      const prompt = 'Görselleri bir falcı gibi yorumla. Kullanıcının adı ${userData.name}, yaşı ${userData.age}, cinsiyeti ${userData.gender}, ilgi alanı ${userData.sexualInterest}, ilişki durumu ${userData.status}, falın amacı ${userData.intention}, ve burcu ${zodiacSign}. Samimi bir dil kullan ve kullanıcıların duymak isteyeceği şeyleri belirt. Yorumlamayı profesyonel yap ve genel olarak giriş, gelişme ve sonuç paragraflarından oluşsun istiyorum.';
-
-      const responseText = await getFortuneText(prompt);
-      if (responseText) {
-        setFortuneText(responseText);
-        setFortuneReady(true);
-      } else {
-        throw new Error('Failed to get a valid response from OpenAI.');
-      }
-    } catch (error) {
-      console.error('Error fetching fortune:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const sendNotificationToBackend = async (token, fortuneText) => {
-    try {
-      const response = await fetch('http://your-server-ip:3000/send-notification', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          token: token,
-          title: 'Your Fortune is Ready!',
-          body: 'Tap to read your fortune.',
-        }),
+  const navigateToFortuneTeller = () => {
+    if (userId) {
+      navigation.navigate('FortuneTellerViewScreen', {
+        userId: userId,
+        fortuneText: fortuneText,
+        userData: userData, // Pass userData here
       });
-
-      if (response.ok) {
-        console.log('Notification request sent successfully!');
-      } else {
-        console.error('Failed to send notification request.');
-      }
-    } catch (error) {
-      console.error('Error sending notification request:', error);
+    } else {
+      console.error('User ID is missing, cannot navigate.');
     }
   };
 
@@ -77,7 +84,7 @@ const FortuneLoadingScreen = ({ navigation, route }) => {
         <>
           <ActivityIndicator size="large" color="#88400d" />
           <Text style={styles.loadingText}>
-            Lütfen bekleyin, falınız hazırlanıyor... 🌟
+            Lütfen bekleyin, falınız hazırlanıyor...
           </Text>
         </>
       ) : (
@@ -86,12 +93,9 @@ const FortuneLoadingScreen = ({ navigation, route }) => {
             styles.button,
             fortuneReady ? styles.buttonActive : styles.buttonDisabled,
           ]}
-          onPress={() =>
-            navigation.navigate('FortuneTellerViewScreen', { fortuneText, userData })
-          }
-          disabled={!fortuneReady}
-        >
-          <Text style={styles.buttonText}>Falı Görüntüle! 🔮</Text>
+          onPress={navigateToFortuneTeller}
+          disabled={!fortuneReady}>
+          <Text style={styles.buttonText}>Falın Görüntüle!</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -106,28 +110,25 @@ const styles = StyleSheet.create({
     backgroundColor: '#fcf4e4',
   },
   image: {
-    width: 300, // Adjust the width as needed
-    height: 300, // Adjust the height as needed
-    resizeMode: 'contain', // Keep the aspect ratio
-    marginBottom: 20, // Spacing between the image and the loading indicator
+    width: 300,
+    height: 300,
+    resizeMode: 'contain',
+    marginBottom: 20,
   },
   loadingText: {
     fontSize: 20,
     color: '#88400d',
     marginTop: 20,
-    fontFamily: 'Nunito-Black',
   },
   button: {
     marginTop: 30,
     paddingVertical: 12,
     paddingHorizontal: 80,
     borderRadius: 20,
-    borderWidth: 0,
-    borderColor: '#88400d',
-    alignItems: 'center',
     justifyContent: 'center',
+    alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
@@ -139,12 +140,9 @@ const styles = StyleSheet.create({
   },
   buttonActive: {
     backgroundColor: '#88400d',
-    borderWidth: 2,
-    borderColor: '#88400d',
   },
   buttonDisabled: {
     backgroundColor: '#ccc',
-    borderWidth: 0,
   },
 });
 
