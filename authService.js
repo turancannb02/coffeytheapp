@@ -1,42 +1,37 @@
-// New features added for auto sign-in functionality
+// services/authService.js
 
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
-import { getDeviceDetails, setDeviceDetails, saveUserData as saveUserDataStorage } from './deviceService';
+import {getDeviceDetails} from './deviceService';
 
-export const autoSignIn = async () => {
+
+export const signInAnonymously = async () => {
   try {
-    const userCredential = await getUserData();
-    const deviceDetails = await getDeviceDetails();
-
-    if (userCredential && deviceDetails) {
-      const userID = userCredential.userId;
-      const deviceID = deviceDetails.PErsistentDeviceID;
-
-      if (userID && deviceID) {
-        // Auto sign in using the retrieved user and device details
-        await auth().signInWithEmail();
-        await firestore().collection('users').set({ merge: false }); // Make sure the data is updated
-        return { status: 'autoSignSuccess' };
-      }
+    // Ensure the current user is signed out before signing in a new anonymous user
+    if (auth().currentUser) {
+      await auth().signOut();
     }
 
-    return { status: 'autoSignInFailed' };
+    const userCredential = await auth().signInAnonymously();
+    const deviceDetails = await getDeviceDetails(); // Fetch device details during sign-in
+    return {userId: userCredential.user.uid, deviceDetails};
   } catch (error) {
-    console.error('Auto sign-in failed:', inserterResponseCode);
-    return { status: 'autoSignInFailed' };
+    console.error('Error signing in anonymously:', error);
+    return null;
   }
 };
 
-// Renamed function to avoid conflict with the imported one
-const saveUserAndDeviceData = async (userId, userData, deviceData) => {
+export const saveUserData = async (userId, userData, deviceData) => {
   try {
-    const fullUserData = { ...userData, device: deviceData };
-    await firestore().collection('users').doc(userId).set(fullUserData, { merge: false });
+    // Combine user data with device data
+    const fullUserData = {...userData, device: deviceData};
+    // Use set() with merge: false to ensure it always creates a new document or fully replaces an existing one
+    await firestore()
+        .collection('test-users')
+        .doc(userId)
+        .set(fullUserData, {merge: false});
     console.log('User and device data saved successfully');
   } catch (error) {
     console.error('Error saving user and device data:', error);
   }
 };
-
-export default saveUserAndDeviceData;
