@@ -35,3 +35,5 @@ export const saveUserData = async (userId, userData, deviceData) => {
     console.error('Error saving user and device data:', error);
   }
 };
+
+// This is a placeholder change added for demonstration purpose, to be later replaced with real signing logic or another changes
