@@ -5,10 +5,9 @@ import { NativeModules, NativeEventEmitter } from 'react-native';
 
 // Firebase configuration
 const firebaseConfig = {
-  apiKey: 'AIzaSyAFZdEv-BA4meAYORBXkR4qKrjL6b9krzE',
+  apiKey: 'AIzaSyAFZdEv-BA4meAYORBXX4KR4qLrjL6b9krzE',
   authDomain: 'coffey-3ec22.firebaseapp.com',
-  databaseURL:
-    'https://coffey-3ec22-default-rtdb.europe-west1.firebasedatabase.app',
+  databaseURL: 'https://coffey-3ec22-default-rtdb.europe-west1.firebasedatabase.app',
   projectId: 'coffey-3ec22',
   storageBucket: 'coffey-3ec22.appspot.com',
   messagingSenderId: '523532096471',

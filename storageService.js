@@ -7,11 +7,11 @@ export const uploadImage = async (userId, imagePath) => {
   // Android permission check
   if (Platform.OS === 'android') {
     const hasPermission = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-      {
-        title: 'Storage Permission Required',
-        message: 'This app needs access to your storage to upload files',
-      },
+        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+        {
+          title: 'Storage Permission Required',
+          message: 'This app needs access to your storage to upload files',
+        },
     );
     if (hasPermission !== PermissionsAndroid.RESULTS.GRANTED) {
       console.error('Storage permission not granted');

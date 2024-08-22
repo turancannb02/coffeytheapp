@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useRef} from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,30 +9,21 @@ import {
   Animated,
   FlatList,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import LinearGradient from 'react-native-linear-gradient';
-import {Swipeable} from 'react-native-gesture-handler';
+import { Swipeable } from 'react-native-gesture-handler';
 import Modal from 'react-native-modal';
 
-const MainScreen = ({route}) => {
-  const {userData} = route.params || {userData: null};
+const MainScreen = ({ route }) => {
+  const { userData } = route.params || { userData: null };
   console.log('MainScreen received userData:', userData);
 
   if (!userData) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>User data is missing!</Text>
-      </View>
-    );
-  }
-
-  // Ensure userData contains expected fields
-  if (!userData.name || !userData.age) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>Incomplete user data provided!</Text>
-      </View>
+        <View style={styles.container}>
+          <Text style={styles.errorText}>User data is missing!</Text>
+        </View>
     );
   }
 
@@ -55,25 +46,27 @@ const MainScreen = ({route}) => {
   const backIcon = require('./assets/back.png');
 
   const services = [
-    {key: '1', title: 'Kahve falı baktır', icon: coffeeIcon},
-    {key: '2', title: 'Günlük Burçlar', icon: horoscopeIcon},
-    {key: '3', title: 'Astroloji Haritası', icon: constellationIcon},
+    { key: '1', title: 'Kahve falı baktır', icon: coffeeIcon },
+    { key: '2', title: 'Günlük Burçlar', icon: horoscopeIcon },
+    { key: '3', title: 'Astroloji Haritası', icon: constellationIcon },
   ];
 
   useEffect(() => {
     const fetchSavedFortunes = async () => {
       try {
         const saved = await AsyncStorage.getItem('savedFortunes');
-        setSavedFortunes(saved ? JSON.parse(saved) : []);
+        if (saved) {
+          setSavedFortunes(JSON.parse(saved));
+        } else {
+          setSavedFortunes([]);
+        }
       } catch (error) {
         console.error('Error fetching saved fortunes:', error);
-        setSavedFortunes([]); // Ensure it's an array
       }
     };
 
     fetchSavedFortunes();
   }, []);
-
 
   const handleKahveFaliBak = () => {
     setIsFortuneGridVisible(!isFortuneGridVisible);
@@ -81,108 +74,109 @@ const MainScreen = ({route}) => {
 
   const showAlert = () => {
     Alert.alert(
-      'Fal baktırmaya hazır mısın?',
-      'Lütfen fincanını ve fincan tabağını hazır konuma getir.',
-      [
-        {
-          text: 'İptal',
-          onPress: () => console.log('İptal pressed'),
-          style: 'cancel',
-        },
-        {
-          text: 'Devam Et',
-          onPress: () => {
-            console.log('Devam Et pressed');
-            navigation.navigate('CoffeeCupUploadScreen', {userData});
+        'Fal baktırmaya hazır mısın?',
+        'Lütfen fincanını ve fincan tabağını hazır konuma getir.',
+        [
+          {
+            text: 'İptal',
+            onPress: () => console.log('İptal pressed'),
+            style: 'cancel',
           },
-        },
-      ],
-      {cancelable: false},
+          {
+            text: 'Devam Et',
+            onPress: () => {
+              console.log('Devam Et pressed');
+              navigation.navigate('CoffeeCupUploadScreen', { userData });
+            },
+          },
+        ],
+        { cancelable: false }
     );
   };
 
-  const deleteFortune = async index => {
+  const deleteFortune = async (index) => {
     const updatedFortunes = savedFortunes.filter((_, i) => i !== index);
     setSavedFortunes(updatedFortunes);
-    await AsyncStorage.setItem(
-      'savedFortunes',
-      JSON.stringify(updatedFortunes),
-    );
+    await AsyncStorage.setItem('savedFortunes', JSON.stringify(updatedFortunes));
   };
 
-  const handleDeleteConfirmation = index => {
+  const handleDeleteConfirmation = (index) => {
     Alert.alert(
-      'Silmek istediğinize emin misiniz?',
-      '',
-      [
-        {
-          text: 'Hayır',
-          onPress: () => console.log('Silme işlemi iptal edildi'),
-          style: 'cancel',
-        },
-        {
-          text: 'Evet',
-          onPress: () => deleteFortune(index),
-        },
-      ],
-      {cancelable: true},
+        'Silmek istediğinize emin misiniz?',
+        '',
+        [
+          {
+            text: 'Hayır',
+            onPress: () => console.log('Silme işlemi iptal edildi'),
+            style: 'cancel',
+          },
+          {
+            text: 'Evet',
+            onPress: () => deleteFortune(index),
+          },
+        ],
+        { cancelable: true }
     );
   };
 
-  const renderRightActions = index => (
-    <TouchableOpacity
-      style={styles.deleteButton}
-      onPress={() => handleDeleteConfirmation(index)}>
-      <Image source={closeIcon} style={styles.closeIcon} />
-    </TouchableOpacity>
+  const renderRightActions = (index) => (
+      <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={() => handleDeleteConfirmation(index)}
+      >
+        <Image source={closeIcon} style={styles.closeIcon} />
+      </TouchableOpacity>
   );
 
-  const renderFortuneItem = ({item, index}) => (
-    <Swipeable renderRightActions={() => renderRightActions(index)}>
-      <TouchableOpacity
-        style={styles.fortuneItem}
-        onPress={() =>
-          navigation.navigate('FortuneTellerViewScreen', {
-            fortuneText: item,
-            userData,
-            updateSavedFortunes: setSavedFortunes,
-          })
-        }>
-        <Text style={styles.fortuneItemText}>Fal #{index + 1}</Text>
-        <Text style={styles.fortuneItemPreview}>
-          {item.substring(0, 60)}...
-        </Text>
-      </TouchableOpacity>
-    </Swipeable>
+  const renderFortuneItem = ({ item, index }) => (
+      <Swipeable renderRightActions={() => renderRightActions(index)}>
+        <TouchableOpacity
+            style={styles.fortuneItem}
+            onPress={() =>
+                navigation.navigate('FortuneTellerViewScreen', {
+                  fortuneText: item,
+                  userData,
+                  updateSavedFortunes: setSavedFortunes,
+                })
+            }
+        >
+          <Text style={styles.fortuneItemText}>Fal #{index + 1}</Text>
+          <Text style={styles.fortuneItemPreview}>{item.substring(0, 60)}...</Text>
+        </TouchableOpacity>
+      </Swipeable>
   );
 
   const Header = () => (
-    <Animated.View
-      style={[styles.header, {backgroundColor: headerBackgroundColor}]}>
-      <TouchableOpacity
-        style={styles.wheelButton}
-        onPress={() => console.log('Wheel of Prizes')}>
-        <Image source={wheelIcon} style={styles.wheelIcon} />
-      </TouchableOpacity>
-      <Animated.Text
-        style={[
-          styles.welcomeText,
-          {
-            fontSize: fontSize,
-            transform: [
-              {translateX: welcomePositionX},
-              {translateY: welcomePositionY},
-            ],
-          },
-        ]}>
-        👋 Hoşgeldin {userData.name}!
-      </Animated.Text>
-      <TouchableOpacity
-        style={styles.notificationButton}
-        onPress={() => console.log('Notifications')}>
-        <Image source={notificationIcon} style={styles.notificationIcon} />
-      </TouchableOpacity>
-    </Animated.View>
+      <Animated.View
+          style={[styles.header, { backgroundColor: headerBackgroundColor }]}
+      >
+        <TouchableOpacity
+            style={styles.wheelButton}
+            onPress={() => console.log('Wheel of Prizes')}
+        >
+          <Image source={wheelIcon} style={styles.wheelIcon} />
+        </TouchableOpacity>
+        <Animated.Text
+            style={[
+              styles.welcomeText,
+              {
+                fontSize,
+                transform: [
+                  { translateX: welcomePositionX },
+                  { translateY: welcomePositionY },
+                ],
+              },
+            ]}
+        >
+          👋 Hoşgeldin {userData.name}!
+        </Animated.Text>
+        <TouchableOpacity
+            style={styles.notificationButton}
+            onPress={() => console.log('Notifications')}
+        >
+          <Image source={notificationIcon} style={styles.notificationIcon} />
+        </TouchableOpacity>
+      </Animated.View>
   );
 
   const fontSize = scrollY.interpolate({
@@ -215,13 +209,14 @@ const MainScreen = ({route}) => {
 
         <Animated.FlatList
             data={services}
-            keyExtractor={item => item.key}
+            keyExtractor={(item) => item.key}
             numColumns={1}
-            renderItem={({item}) => (
+            renderItem={({ item }) => (
                 <>
                   <TouchableOpacity
                       style={styles.gridItem}
-                      onPress={item.key === '1' ? handleKahveFaliBak : showAlert}>
+                      onPress={item.key === '1' ? handleKahveFaliBak : showAlert}
+                  >
                     <Image source={item.icon} style={styles.icon} />
                     <Text style={styles.gridText}>{item.title}</Text>
                   </TouchableOpacity>
@@ -230,9 +225,9 @@ const MainScreen = ({route}) => {
                       <View style={styles.fortuneGridContainer}>
                         {savedFortunes.length > 0 ? (
                             <FlatList
-                                data={savedFortunes} // Ensure this is always an array
-                                keyExtractor={(item, index) => index.toString()} // A function that returns a unique key for each item
-                                renderItem={renderFortuneItem} // A function that returns a React element to render each item
+                                data={savedFortunes}
+                                keyExtractor={(item, index) => index.toString()}
+                                renderItem={renderFortuneItem}
                                 contentContainerStyle={styles.fortuneGrid}
                             />
                         ) : (
@@ -250,8 +245,8 @@ const MainScreen = ({route}) => {
             style={styles.grid}
             contentContainerStyle={styles.contentContainer}
             onScroll={Animated.event(
-                [{nativeEvent: {contentOffset: {y: scrollY}}}],
-                {useNativeDriver: false},
+                [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+                { useNativeDriver: false }
             )}
             scrollEventThrottle={16}
         />
@@ -259,17 +254,20 @@ const MainScreen = ({route}) => {
         <View style={styles.navBar}>
           <TouchableOpacity
               style={styles.navItem}
-              onPress={() => console.log('Home')}>
+              onPress={() => console.log('Home')}
+          >
             <Image source={homeIcon} style={styles.icon} />
           </TouchableOpacity>
           <TouchableOpacity
               style={styles.navItem}
-              onPress={() => setModalVisible(true)}>
+              onPress={() => setModalVisible(true)}
+          >
             <Image source={plusIcon} style={styles.icon} />
           </TouchableOpacity>
           <TouchableOpacity
               style={styles.navItem}
-              onPress={() => navigation.navigate('Settings')}>
+              onPress={() => navigation.navigate('Settings')}
+          >
             <Image source={gearIcon} style={styles.icon} />
           </TouchableOpacity>
         </View>
@@ -279,11 +277,13 @@ const MainScreen = ({route}) => {
             isVisible={modalVisible}
             onSwipeComplete={() => setModalVisible(false)}
             swipeDirection="down"
-            style={styles.modal}>
+            style={styles.modal}
+        >
           <View style={styles.modalContent}>
             <TouchableOpacity
                 style={styles.closeButton2}
-                onPress={() => setModalVisible(false)}>
+                onPress={() => setModalVisible(false)}
+            >
               <Image source={closeIcon} style={styles.closeIcon2} />
             </TouchableOpacity>
             <TouchableOpacity
@@ -291,7 +291,8 @@ const MainScreen = ({route}) => {
                 onPress={() => {
                   setModalVisible(false);
                   setSecondModalVisible(true); // Open the second modal
-                }}>
+                }}
+            >
               <Image source={coffeeIcon} style={styles.modalIcon} />
               <Text style={styles.modalText}>Kahve falı baktır</Text>
             </TouchableOpacity>
@@ -311,14 +312,16 @@ const MainScreen = ({route}) => {
             isVisible={secondModalVisible}
             onSwipeComplete={() => setSecondModalVisible(false)}
             swipeDirection="down"
-            style={styles.modal}>
+            style={styles.modal}
+        >
           <View style={styles.modalContent}>
             <TouchableOpacity
                 style={styles.backButton}
                 onPress={() => {
                   setSecondModalVisible(false);
                   setModalVisible(true); // Reopen the first modal
-                }}>
+                }}
+            >
               <Image source={backIcon} style={styles.backIcon} />
             </TouchableOpacity>
             <Text style={styles.secondModalText}>
@@ -328,8 +331,9 @@ const MainScreen = ({route}) => {
                 style={styles.secondModalButton}
                 onPress={() => {
                   setSecondModalVisible(false);
-                  navigation.navigate('CoffeeCupUploadScreen', {userData});
-                }}>
+                  navigation.navigate('CoffeeCupUploadScreen', { userData });
+                }}
+            >
               <Text style={styles.modalText}>Devam Et</Text>
             </TouchableOpacity>
           </View>

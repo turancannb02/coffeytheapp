@@ -6,7 +6,7 @@ import { Platform } from 'react-native';
 export const signInAnonymously = async () => {
   try {
     const userCredential = await firebase.auth().signInAnonymously();
-    const userId = userCredential.user.uid;
+    const userId = userCredential.user.uid; // Get the USID after successful sign-in
     const deviceDetails = {
       os: Platform.OS,
       appVersion: DeviceInfo.getVersion(),
@@ -14,7 +14,7 @@ export const signInAnonymously = async () => {
     };
     return { userId, deviceDetails };
   } catch (error) {
-    console.error('Error signing in anonymously:', error);
+    console.error('Error signing in anonymously', userCredential);
     throw error;
   }
 };
@@ -30,7 +30,11 @@ export const saveUserData = async (userId, userData, deviceDetails) => {
       ...deviceDetails,
     };
 
-    await firestore().collection('test-users').doc(userId).set(userDocumentData);
+    // Make sure this uses firestore().collection() or firestore().doc()
+    await firestore()
+        .collection('test-users')
+        .doc(userId)
+        .set(userDocumentData);
 
     console.log(`User document created with userNumber: ${userNumber}`);
   } catch (error) {
@@ -54,7 +58,7 @@ const getNextUserNumber = async () => {
     return nextNumber;
   } else {
     // Initialize if the document doesn't exist
-    await docRef.set({ latestNumber: 1 });
+    await docRef.set({latestNumber: 1});
     return 1;
   }
 };
