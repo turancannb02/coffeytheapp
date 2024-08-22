@@ -15,9 +15,7 @@ import {
 } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import auth from '@react-native-firebase/auth';
-import firestore from '@react-native-firebase/firestore';
-import { getDeviceDetails, saveUserData } from './authService';
+import { signInAnonymously, saveUserData } from './authService';
 
 const RegistrationScreen = ({ navigation }) => {
   const [name, setName] = useState('');
@@ -29,7 +27,7 @@ const RegistrationScreen = ({ navigation }) => {
   const [birthday, setBirthday] = useState(new Date());
   const [isFormValid, setIsFormValid] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // Loading state
 
   const checkFormValidity = () => {
     setIsFormValid(
@@ -55,13 +53,11 @@ const RegistrationScreen = ({ navigation }) => {
   };
 
   const handleRegister = async () => {
-    setIsLoading(true);
+    setIsLoading(true); // Start loading
 
     try {
-      const { user } = await auth().signInAnonymously();
-      const deviceDetails = await getDeviceDetails();
-
-      if (user && deviceDetails) {
+      const { userId, deviceDetails } = await signInAnonymously();
+      if (userId && deviceDetails) {
         const userData = {
           name,
           age,
@@ -71,27 +67,28 @@ const RegistrationScreen = ({ navigation }) => {
           intention,
           birthday: birthday.toISOString(),
         };
-
-        await firestore()
-            .collection('test-users')
-            .doc(user.uid)
-            .set({ ...userData, device: deviceDetails });
-
-        await saveUserData(user.uid, userData, deviceDetails);
-
+        await saveUserData(userId, userData, deviceDetails);
+        console.log('Navigating to Main with userData:', userData);
+        setIsLoading(false); // Stop loading
         navigation.navigate('Main', { userData });
       } else {
-        Alert.alert('Registration Error', 'Unable to register. Please try again.');
+        setIsLoading(false); // Stop loading
+        Alert.alert(
+            'Registration Error',
+            'Unable to register. Please try again.',
+        );
       }
     } catch (error) {
-      console.error('Error during registration:', error);
-      Alert.alert('Error', 'An error occurred during registration. Please try again.');
-    } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Stop loading
+      Alert.alert(
+          'Error',
+          'An error occurred during registration. Please try again.',
+      );
     }
   };
 
-  const formatDate = (date) => {
+
+  const formatDate = date => {
     return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
   };
 
@@ -116,7 +113,7 @@ const RegistrationScreen = ({ navigation }) => {
                 value={name}
                 onChangeText={setName}
                 onEndEditing={checkFormValidity}
-                editable={!isLoading}
+                editable={!isLoading} // Disable input during loading
             />
 
             <Text style={styles.label}>Yaş</Text>
@@ -127,14 +124,14 @@ const RegistrationScreen = ({ navigation }) => {
                 value={age}
                 onChangeText={setAge}
                 onEndEditing={checkFormValidity}
-                editable={!isLoading}
+                editable={!isLoading} // Disable input during loading
             />
 
             <Text style={styles.label}>Doğum Tarihi</Text>
             <TouchableOpacity
                 onPress={() => setShowDatePicker(true)}
                 style={styles.datePickerButton}
-                disabled={isLoading}
+                disabled={isLoading} // Disable button during loading
             >
               <Text>{formatDate(birthday)}</Text>
             </TouchableOpacity>
@@ -159,7 +156,7 @@ const RegistrationScreen = ({ navigation }) => {
                   { label: 'Diğer', value: 'Diğer' },
                 ]}
                 placeholder={{ label: 'Cinsiyet Seçin', value: null }}
-                disabled={isLoading}
+                disabled={isLoading} // Disable picker during loading
             />
 
             <Text style={styles.label}>İlişki Durumu</Text>
@@ -175,7 +172,7 @@ const RegistrationScreen = ({ navigation }) => {
                   { label: 'Diğer', value: 'Diğer' },
                 ]}
                 placeholder={{ label: 'İlişki Durumunuzu Seçin', value: null }}
-                disabled={isLoading}
+                disabled={isLoading} // Disable picker during loading
             />
 
             <Text style={styles.label}>İlgi Alanı</Text>
@@ -188,7 +185,7 @@ const RegistrationScreen = ({ navigation }) => {
                   { label: 'Diğer', value: 'Diğer' },
                 ]}
                 placeholder={{ label: 'İlgi Alanınızı Seçin', value: null }}
-                disabled={isLoading}
+                disabled={isLoading} // Disable picker during loading
             />
 
             <Text style={styles.label}>Falın Amacı</Text>
@@ -202,7 +199,7 @@ const RegistrationScreen = ({ navigation }) => {
                   { label: 'Sağlık', value: 'Sağlık' },
                 ]}
                 placeholder={{ label: 'Falın Amacını Seçin', value: null }}
-                disabled={isLoading}
+                disabled={isLoading} // Disable picker during loading
             />
           </View>
         </ScrollView>
@@ -263,7 +260,7 @@ const styles = StyleSheet.create({
     borderColor: 'black',
     marginBottom: 15,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 3,
     elevation: 5,
@@ -275,7 +272,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 15,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 3,
     elevation: 5,
@@ -286,7 +283,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#ccc',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 3,
     elevation: 5,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import {
   Linking,
   ActivityIndicator,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -29,30 +29,26 @@ const SettingsScreen = () => {
     intention: '',
     birthday: new Date(),
   });
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // Loading state
 
   useEffect(() => {
-    const checkUser = async () => {
-      const user = auth().currentUser;
-      if (user) {
-        try {
-          const userDoc = await firestore().collection('test-users').doc(user.uid).get();
-          if (userDoc.exists) {
-            setUserDetails(userDoc.data());
-          } else {
-            console.log('No such document!');
-          }
-        } catch (error) {
-          console.error('Error fetching document:', error);
-          Alert.alert('Error', 'Failed to fetch user data. Please check your permissions.');
-        }
-      } else {
-        console.log('User not signed in');
-        navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
-      }
-    };
+    const unsubscribe = firestore()
+        .collection('test-users')
+        .doc(auth().currentUser?.uid)
+        .onSnapshot(
+            documentSnapshot => {
+              if (documentSnapshot && documentSnapshot.exists) {
+                setUserDetails(documentSnapshot.data());
+              } else {
+                console.log('No such document!');
+              }
+            },
+            error => {
+              console.error('Error fetching document:', error);
+            },
+        );
 
-    checkUser();
+    return () => unsubscribe();
   }, []);
 
   const handleLogout = async () => {
@@ -62,7 +58,7 @@ const SettingsScreen = () => {
       await auth().signOut(); // Sign out the user from Firebase Auth
       navigation.reset({
         index: 0,
-        routes: [{ name: 'Login' }],
+        routes: [{name: 'Login'}],
       });
     } catch (error) {
       Alert.alert('Hata', 'Çıkış yapılırken bir hata oluştu.');
@@ -71,14 +67,15 @@ const SettingsScreen = () => {
     }
   };
 
+
   const handleUpdate = async () => {
     setIsLoading(true); // Start loading
-    const { gender, status, sexualInterest, intention } = userDetails;
+    const {gender, status, sexualInterest, intention} = userDetails;
     try {
       await firestore()
           .collection('test-users')
           .doc(auth().currentUser.uid)
-          .set({ gender, status, sexualInterest, intention }, { merge: true });
+          .set({gender, status, sexualInterest, intention}, {merge: true});
       Alert.alert('Profil Güncellendi', 'Profiliniz başarıyla güncellendi.');
     } catch (error) {
       Alert.alert('Hata', 'Profil güncellenirken bir hata oluştu.');
@@ -87,8 +84,63 @@ const SettingsScreen = () => {
     }
   };
 
+  /*
+  const handleDeleteAccount = async () => {
+    Alert.alert(
+      'Hesabı Sil',
+      'Bunu yapmak istediğinize emin misiniz? Tüm verileriniz silinecek.',
+      [
+        { text: 'İptal', style: 'cancel' },
+        {
+          text: 'Evet',
+          onPress: async () => {
+            setIsLoading(true); // Start loading
+            try {
+              const userId = auth().currentUser.uid;
+              const userEmail = auth().currentUser.email; // Capture user email or any other identifying info
+
+              // Store the deletion request in "requested-deletions"
+              await firestore().collection('requested-deletions').doc(userId).set({
+                userId: userId,
+                requestTime: firestore.FieldValue.serverTimestamp(),
+              });
+
+              // Inform the user that the request has been received
+              Alert.alert('Hesap Silme Talebi', 'Hesap silme talebiniz alınmıştır.');
+
+              // Perform Firestore operations before account deletion
+              await firestore().collection('deleted-users').doc(userId).set({
+                userId: userId,
+                email: userEmail,
+                deletionTime: firestore.FieldValue.serverTimestamp(),
+              });
+
+              // Delete Firebase Auth account
+              await auth().currentUser.delete();
+
+              // Navigate to the LoginScreen after deletion
+              setTimeout(() => {
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: 'LoginScreen' }],
+                });
+              }, 1500); // 1.5 seconds delay
+
+            } catch (error) {
+              console.error('Error handling deletion:', error);
+              Alert.alert('Hata', 'Hesap silinirken bir hata oluştu.');
+            } finally {
+              setIsLoading(false); // Stop loading
+            }
+          },
+        },
+      ],
+    );
+  };
+*/
+
   const handleChange = (name, value) => {
-    setUserDetails((prevDetails) => ({ ...prevDetails, [name]: value }));
+    setUserDetails(prevDetails => ({...prevDetails, [name]: value}));
   };
 
   const handleEmail = () => {
@@ -101,8 +153,7 @@ const SettingsScreen = () => {
           <View style={styles.headerContainer}>
             <TouchableOpacity
                 style={styles.backButton}
-                onPress={() => navigation.goBack()}
-            >
+                onPress={() => navigation.goBack()}>
               <Image
                   source={require('./assets/back.png')}
                   style={styles.backIcon}
@@ -134,49 +185,48 @@ const SettingsScreen = () => {
             <Text style={styles.label}>Cinsiyet</Text>
             <RNPickerSelect
                 style={pickerSelectStyles}
-                onValueChange={(value) => handleChange('gender', value)}
+                onValueChange={value => handleChange('gender', value)}
                 items={[
-                  { label: 'Erkek', value: 'Erkek' },
-                  { label: 'Kadın', value: 'Kadın' },
-                  { label: 'Diğer', value: 'Diğer' },
+                  {label: 'Erkek', value: 'Erkek'},
+                  {label: 'Kadın', value: 'Kadın'},
+                  {label: 'Diğer', value: 'Diğer'},
                 ]}
-                placeholder={{ label: 'Cinsiyet Seçin', value: null }}
+                placeholder={{label: 'Cinsiyet Seçin', value: null}}
                 value={userDetails.gender}
             />
 
             <Text style={styles.label}>İlişki Durumu</Text>
             <RNPickerSelect
                 style={pickerSelectStyles}
-                onValueChange={(value) => handleChange('status', value)}
+                onValueChange={value => handleChange('status', value)}
                 items={[
-                  { label: 'Bekar', value: 'Bekar' },
-                  { label: 'Evli', value: 'Evli' },
-                  { label: 'Nişanlı', value: 'Nişanlı' },
-                  { label: 'Boşanmış', value: 'Boşanmış' },
-                  { label: 'Karmaşık', value: 'Karmaşık' },
+                  {label: 'Bekar', value: 'Bekar'},
+                  {label: 'Evli', value: 'Evli'},
+                  {label: 'Nişanlı', value: 'Nişanlı'},
+                  {label: 'Boşanmış', value: 'Boşanmış'},
+                  {label: 'Karmaşık', value: 'Karmaşık'},
                 ]}
-                placeholder={{ label: 'İlişki Durumunuzu Seçin', value: null }}
+                placeholder={{label: 'İlişki Durumunuzu Seçin', value: null}}
                 value={userDetails.status}
             />
 
             <Text style={styles.label}>İlgi Alanı</Text>
             <RNPickerSelect
                 style={pickerSelectStyles}
-                onValueChange={(value) => handleChange('sexualInterest', value)}
+                onValueChange={value => handleChange('sexualInterest', value)}
                 items={[
-                  { label: 'Erkekler', value: 'Erkekler' },
-                  { label: 'Kadınlar', value: 'Kadınlar' },
-                  { label: 'Diğer', value: 'Diğer' },
+                  {label: 'Erkekler', value: 'Erkekler'},
+                  {label: 'Kadınlar', value: 'Kadınlar'},
+                  {label: 'Diğer', value: 'Diğer'},
                 ]}
-                placeholder={{ label: 'İlgi Alanınızı Seçin', value: null }}
+                placeholder={{label: 'İlgi Alanınızı Seçin', value: null}}
                 value={userDetails.sexualInterest}
             />
 
             <TouchableOpacity
                 style={styles.updateButton}
                 onPress={handleUpdate}
-                disabled={isLoading}
-            >
+                disabled={isLoading}>
               {isLoading ? (
                   <ActivityIndicator size="large" color="#fff" />
               ) : (
@@ -187,8 +237,7 @@ const SettingsScreen = () => {
             <TouchableOpacity
                 style={styles.logoutButton}
                 onPress={handleLogout}
-                disabled={isLoading}
-            >
+                disabled={isLoading}>
               {isLoading ? (
                   <ActivityIndicator size="large" color="#fff" />
               ) : (
@@ -256,7 +305,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     color: '#6c757d',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 3,
     elevation: 5,
@@ -268,7 +317,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 3,
     elevation: 5,
@@ -285,7 +334,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 3,
     elevation: 5,
@@ -301,7 +350,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     marginBottom: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 3,
     elevation: 5,
@@ -324,7 +373,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 3,
     elevation: 5,
@@ -340,7 +389,7 @@ const pickerSelectStyles = {
     borderColor: 'gray',
     borderRadius: 4,
     color: 'black',
-    paddingRight: 30,
+    paddingRight: 30, // to ensure the text is never behind the icon
   },
   inputAndroid: {
     fontSize: 16,
@@ -350,7 +399,7 @@ const pickerSelectStyles = {
     borderColor: 'gray',
     borderRadius: 8,
     color: 'black',
-    paddingRight: 30,
+    paddingRight: 30, // to ensure the text is never behind the icon
   },
 };
 

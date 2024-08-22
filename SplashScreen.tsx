@@ -1,19 +1,14 @@
 import React, { useEffect, useMemo } from 'react';
 import { View, StyleSheet, Animated, ImageBackground, Text } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { getUserData } from './authService';
 
-const SplashScreen: React.FC = () => {
-  const navigation = useNavigation();
-
+const SplashScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const fadeAnim = useMemo(() => new Animated.Value(0), []);
-  const scaleAnim = useMemo(() => new Animated.Value(1.2), []); // Start larger
+  const scaleAnim = useMemo(() => new Animated.Value(1.2), []); // Starting bigger and shrinking down
 
   useEffect(() => {
-    // Start the animation
     const animations = Animated.sequence([
       Animated.timing(scaleAnim, {
-        toValue: 1, // Scale to normal size
+        toValue: 1, // Animate scale to normal size
         duration: 1000,
         useNativeDriver: true,
       }),
@@ -24,23 +19,7 @@ const SplashScreen: React.FC = () => {
       }),
     ]);
 
-    animations.start(async () => {
-      const userData = await getUserData();
-
-      if (userData && userData.userId) {
-        // User data exists and userId is valid
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'Main', params: { userData } }],
-        });
-      } else {
-        // No user data found, navigate to Login
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'Login' }],
-        });
-      }
-    });
+    animations.start(() => navigation.navigate('Login')); // Navigate to Login after animations
 
     return () => animations.stop(); // Clean up the animation on unmount
   }, [navigation, fadeAnim, scaleAnim]);
