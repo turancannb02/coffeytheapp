@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -10,10 +10,9 @@ import {
   Alert,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {saveFortune} from './authService'; // Import the saveFortune function
 
-const FortuneTellerViewScreen = ({navigation, route}) => {
-  const {fortuneText, userId} = route.params;
+const FortuneTellerViewScreen = ({ navigation, route }) => {
+  const { fortuneText } = route.params;
   const [savedFortunes, setSavedFortunes] = useState([]);
 
   useEffect(() => {
@@ -25,8 +24,6 @@ const FortuneTellerViewScreen = ({navigation, route}) => {
         }
       } catch (error) {
         console.error('Error loading saved fortunes:', error);
-        console.log("FortuneTellerViewScreen received fortuneText:", route.params.fortuneText);
-        console.log("FORTUNE_OUTPUT:", route.params.fortuneText);  // Log with FORTUNE_OUTPUT prefix
       }
     };
 
@@ -40,12 +37,12 @@ const FortuneTellerViewScreen = ({navigation, route}) => {
       });
       if (result.action === Share.sharedAction) {
         if (result.activityType) {
-          // Shared with activity type of result.activityType
+          // shared with activity type of result.activityType
         } else {
-          // Shared
+          // shared
         }
       } else if (result.action === Share.dismissedAction) {
-        // Dismissed
+        // dismissed
       }
     } catch (error) {
       Alert.alert('Paylaşma hatası', error.message);
@@ -55,59 +52,41 @@ const FortuneTellerViewScreen = ({navigation, route}) => {
   const handleSave = async () => {
     try {
       const updatedFortunes = [...savedFortunes, fortuneText];
-      await AsyncStorage.setItem(
-        'savedFortunes',
-        JSON.stringify(updatedFortunes),
-      );
+      await AsyncStorage.setItem('savedFortunes', JSON.stringify(updatedFortunes));
       setSavedFortunes(updatedFortunes);
-
-      // Save the fortune to Firestore
-      if (userId) {
-        await saveFortune(userId, fortuneText)
-          .then(() => {
-            console.log('Fortune saved to Firestore successfully');
-          })
-          .catch(error => {
-            console.error('Error saving fortune to Firestore:', error);
-          });
-      } else {
-        console.error('userId is missing or undefined');
-      }
-
-      Alert.alert('Başarı', 'Falınız kaydedildi!');
+      Alert.alert('Falınız kaydedildi!');
     } catch (error) {
       Alert.alert('Kayıt hatası', error.message);
     }
   };
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.scrollViewContent}>
-      <View style={styles.headerContainer}>
-        <Text style={styles.headerText}>Fal Yorumu</Text>
-        <View style={styles.iconContainer}>
-          <TouchableOpacity onPress={handleSave}>
-            <Image source={require('./assets/star.png')} style={styles.icon} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={handleShare}>
-            <Image source={require('./assets/share.png')} style={styles.icon} />
-          </TouchableOpacity>
+      <ScrollView
+          style={styles.container}
+          contentContainerStyle={styles.scrollViewContent}>
+        <View style={styles.headerContainer}>
+          <Text style={styles.headerText}>Fal Yorumunuz</Text>
+          <View style={styles.iconContainer}>
+            <TouchableOpacity onPress={handleSave}>
+              <Image source={require('./assets/star.png')} style={styles.icon} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleShare}>
+              <Image source={require('./assets/share.png')} style={styles.icon} />
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
-      <View style={styles.fortuneContainer}>
-        <Text style={styles.fortuneText}>{fortuneText}</Text>
-      </View>
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() =>
-          navigation.navigate('Main', {userData: user})
-        }>
-        <Text style={styles.buttonText}>Ana Menüye Dön</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        <View style={styles.fortuneContainer}>
+          <Text style={styles.fortuneText}>{fortuneText}</Text>
+        </View>
+        <TouchableOpacity
+            style={styles.button}
+            onPress={() => navigation.navigate('Main', { userData: route.params.userData })}>
+          <Text style={styles.buttonText}>Ana Menüye Dön</Text>
+        </TouchableOpacity>
+      </ScrollView>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {
@@ -117,11 +96,12 @@ const styles = StyleSheet.create({
   },
   scrollViewContent: {
     flexGrow: 1,
-    justifyContent: 'space-between',
+    justifyContent: 'space-between', // Ensures content is spread across the screen
   },
   headerContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 20,
   },
   headerText: {
@@ -163,7 +143,6 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     alignItems: 'center',
     justifyContent: 'center',
-    alignSelf: 'center',
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.25,
