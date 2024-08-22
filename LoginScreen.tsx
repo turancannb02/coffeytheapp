@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
     color: '#8a4412',
     fontSize: 54,
     fontFamily: 'Nunito-Black',
-    fontWeight: '1000',
+    fontWeight: '900',
     marginBottom: 30,
   },
   descriptionText: {

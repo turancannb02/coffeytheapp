@@ -1,37 +1,60 @@
-// services/authService.js
-
-import auth from '@react-native-firebase/auth';
+import { firebase } from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
-import {getDeviceDetails} from './deviceService';
-
+import DeviceInfo from 'react-native-device-info';
+import { Platform } from 'react-native';
 
 export const signInAnonymously = async () => {
   try {
-    // Ensure the current user is signed out before signing in a new anonymous user
-    if (auth().currentUser) {
-      await auth().signOut();
-    }
-
-    const userCredential = await auth().signInAnonymously();
-    const deviceDetails = await getDeviceDetails(); // Fetch device details during sign-in
-    return {userId: userCredential.user.uid, deviceDetails};
+    const userCredential = await firebase.auth().signInAnonymously();
+    const userId = userCredential.user.uid;
+    const deviceDetails = {
+      os: Platform.OS,
+      appVersion: DeviceInfo.getVersion(),
+      osVersion: DeviceInfo.getSystemVersion(),
+    };
+    return { userId, deviceDetails };
   } catch (error) {
     console.error('Error signing in anonymously:', error);
-    return null;
+    throw error;
   }
 };
 
-export const saveUserData = async (userId, userData, deviceData) => {
+export const saveUserData = async (userId, userData, deviceDetails) => {
   try {
-    // Combine user data with device data
-    const fullUserData = {...userData, device: deviceData};
-    // Use set() with merge: false to ensure it always creates a new document or fully replaces an existing one
-    await firestore()
-        .collection('test-users')
-        .doc(userId)
-        .set(fullUserData, {merge: false});
-    console.log('User and device data saved successfully');
+    const userNumber = await getNextUserNumber(); // Function to get the next incremental number
+
+    const userDocumentData = {
+      ...userData,
+      userId,
+      userNumber,
+      ...deviceDetails,
+    };
+
+    await firestore().collection('test-users').doc(userId).set(userDocumentData);
+
+    console.log(`User document created with userNumber: ${userNumber}`);
   } catch (error) {
-    console.error('Error saving user and device data:', error);
+    console.error('Error saving user data:', error);
+    throw error;
+  }
+};
+
+// Function to get the next available user number
+const getNextUserNumber = async () => {
+  const docRef = firestore().collection('config').doc('userNumber');
+  const doc = await docRef.get();
+
+  if (doc.exists) {
+    const currentNumber = doc.data().latestNumber || 0;
+    const nextNumber = currentNumber + 1;
+
+    // Update the document with the new number
+    await docRef.set({ latestNumber: nextNumber });
+
+    return nextNumber;
+  } else {
+    // Initialize if the document doesn't exist
+    await docRef.set({ latestNumber: 1 });
+    return 1;
   }
 };

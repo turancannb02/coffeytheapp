@@ -15,6 +15,7 @@ import {
 import {useNavigation} from '@react-navigation/native';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
+import { firebase } from '@react-native-firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import RNPickerSelect from 'react-native-picker-select';
 
@@ -53,19 +54,14 @@ const SettingsScreen = () => {
 
   const handleLogout = async () => {
     try {
-      setIsLoading(true);
-      await AsyncStorage.removeItem('userId'); // Clear only the userId, not all data
-      await auth().signOut(); // Sign out the user from Firebase Auth
-      navigation.reset({
-        index: 0,
-        routes: [{name: 'Login'}],
-      });
+      await firebase.auth().signOut();
+      await AsyncStorage.removeItem('userToken');
+      navigation.navigate('Login');
     } catch (error) {
-      Alert.alert('Hata', 'Çıkış yapılırken bir hata oluştu.');
-    } finally {
-      setIsLoading(false);
+      console.error('Failed to logout:', error);
     }
   };
+
 
 
   const handleUpdate = async () => {

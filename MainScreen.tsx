@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
-  ImageSourcePropType,
   Alert,
   Animated,
   FlatList,
@@ -16,23 +15,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import {Swipeable} from 'react-native-gesture-handler';
 import Modal from 'react-native-modal';
 
-interface MainScreenProps {
-  route: {
-    params: {
-      userData: {
-        name: string;
-        age: string;
-        gender: string;
-        status: string;
-        sexualInterest: string;
-        intention: string;
-        birthday: Date;
-      };
-    };
-  };
-}
-
-const MainScreen: React.FC<MainScreenProps> = ({route}) => {
+const MainScreen = ({route}) => {
   const {userData} = route.params || {userData: null};
   console.log('MainScreen received userData:', userData);
 
@@ -44,34 +27,32 @@ const MainScreen: React.FC<MainScreenProps> = ({route}) => {
     );
   }
 
-  const [savedFortunes, setSavedFortunes] = useState<string[]>([]);
+  // Ensure userData contains expected fields
+  if (!userData.name || !userData.age) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>Incomplete user data provided!</Text>
+      </View>
+    );
+  }
+
+  const [savedFortunes, setSavedFortunes] = useState([]);
   const [isFortuneGridVisible, setIsFortuneGridVisible] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [secondModalVisible, setSecondModalVisible] = useState(false);
   const navigation = useNavigation();
-  const navigateToCoffeeCupUploadScreen = () => {
-    console.log('Navigating to CoffeeCupUploadScreen with userData:', userData);
-    navigation.navigate('CoffeeCupUploadScreen', {userData});
-  };
+  const scrollY = useRef(new Animated.Value(0)).current;
 
-  const navigateToFortuneTellerViewScreen = fortuneText => {
-    console.log(
-      'Navigating to FortuneTellerViewScreen with userData:',
-      userData,
-    );
-    navigation.navigate('FortuneTellerViewScreen', {fortuneText, userData});
-  };
-  const homeIcon: ImageSourcePropType = require('./assets/home.png');
-  const plusIcon: ImageSourcePropType = require('./assets/plus.png');
-  const gearIcon: ImageSourcePropType = require('./assets/gear.png');
-  const wheelIcon: ImageSourcePropType = require('./assets/wheel.png');
-  const notificationIcon: ImageSourcePropType = require('./assets/bell.png');
-  const coffeeIcon: ImageSourcePropType = require('./assets/coffee.png');
-  const horoscopeIcon: ImageSourcePropType = require('./assets/horoscope.png');
-  const constellationIcon: ImageSourcePropType = require('./assets/constellation.png');
-  const closeIcon: ImageSourcePropType = require('./assets/close.png');
-  const closeIcon2: ImageSourcePropType = require('./assets/close.png');
-  const backIcon: ImageSourcePropType = require('./assets/back.png');
+  const homeIcon = require('./assets/home.png');
+  const plusIcon = require('./assets/plus.png');
+  const gearIcon = require('./assets/gear.png');
+  const wheelIcon = require('./assets/wheel.png');
+  const notificationIcon = require('./assets/bell.png');
+  const coffeeIcon = require('./assets/coffee.png');
+  const horoscopeIcon = require('./assets/horoscope.png');
+  const constellationIcon = require('./assets/constellation.png');
+  const closeIcon = require('./assets/close.png');
+  const backIcon = require('./assets/back.png');
 
   const services = [
     {key: '1', title: 'Kahve falı baktır', icon: coffeeIcon},
@@ -83,18 +64,20 @@ const MainScreen: React.FC<MainScreenProps> = ({route}) => {
     const fetchSavedFortunes = async () => {
       try {
         const saved = await AsyncStorage.getItem('savedFortunes');
-        if (saved) {
-          setSavedFortunes(JSON.parse(saved));
-        }
+        setSavedFortunes(saved ? JSON.parse(saved) : []);
       } catch (error) {
-        console.log('Error fetching saved fortunes:', error);
+        console.error('Error fetching saved fortunes:', error);
+        setSavedFortunes([]); // Ensure it's an array
       }
     };
 
     fetchSavedFortunes();
   }, []);
 
-  const scrollY = useRef(new Animated.Value(0)).current;
+
+  const handleKahveFaliBak = () => {
+    setIsFortuneGridVisible(!isFortuneGridVisible);
+  };
 
   const showAlert = () => {
     Alert.alert(
@@ -118,11 +101,7 @@ const MainScreen: React.FC<MainScreenProps> = ({route}) => {
     );
   };
 
-  const handleKahveFaliBak = () => {
-    setIsFortuneGridVisible(!isFortuneGridVisible);
-  };
-
-  const deleteFortune = async (index: number) => {
+  const deleteFortune = async index => {
     const updatedFortunes = savedFortunes.filter((_, i) => i !== index);
     setSavedFortunes(updatedFortunes);
     await AsyncStorage.setItem(
@@ -131,7 +110,7 @@ const MainScreen: React.FC<MainScreenProps> = ({route}) => {
     );
   };
 
-  const handleDeleteConfirmation = (index: number) => {
+  const handleDeleteConfirmation = index => {
     Alert.alert(
       'Silmek istediğinize emin misiniz?',
       '',
@@ -150,7 +129,7 @@ const MainScreen: React.FC<MainScreenProps> = ({route}) => {
     );
   };
 
-  const renderRightActions = (index: number) => (
+  const renderRightActions = index => (
     <TouchableOpacity
       style={styles.deleteButton}
       onPress={() => handleDeleteConfirmation(index)}>
@@ -158,9 +137,6 @@ const MainScreen: React.FC<MainScreenProps> = ({route}) => {
     </TouchableOpacity>
   );
 
-  const updateSavedFortunes = newFortunes => {
-    setSavedFortunes(newFortunes);
-  };
   const renderFortuneItem = ({item, index}) => (
     <Swipeable renderRightActions={() => renderRightActions(index)}>
       <TouchableOpacity
@@ -169,7 +145,7 @@ const MainScreen: React.FC<MainScreenProps> = ({route}) => {
           navigation.navigate('FortuneTellerViewScreen', {
             fortuneText: item,
             userData,
-            updateSavedFortunes, // Pass the callback function
+            updateSavedFortunes: setSavedFortunes,
           })
         }>
         <Text style={styles.fortuneItemText}>Fal #{index + 1}</Text>
@@ -197,8 +173,6 @@ const MainScreen: React.FC<MainScreenProps> = ({route}) => {
               {translateX: welcomePositionX},
               {translateY: welcomePositionY},
             ],
-            textAlign: 'center',
-            flex: 1,
           },
         ]}>
         👋 Hoşgeldin {userData.name}!
@@ -236,131 +210,131 @@ const MainScreen: React.FC<MainScreenProps> = ({route}) => {
   });
 
   return (
-    <LinearGradient colors={['#fff', '#f8d8c1']} style={styles.container}>
-      <Header />
+      <LinearGradient colors={['#fff', '#f8d8c1']} style={styles.container}>
+        <Header />
 
-      <Animated.FlatList
-        data={services}
-        keyExtractor={item => item.key}
-        numColumns={1}
-        renderItem={({item}) => (
-          <>
-            <TouchableOpacity
-              style={styles.gridItem}
-              onPress={item.key === '1' ? handleKahveFaliBak : showAlert}>
-              <Image source={item.icon} style={styles.icon} />
-              <Text style={styles.gridText}>{item.title}</Text>
-            </TouchableOpacity>
+        <Animated.FlatList
+            data={services}
+            keyExtractor={item => item.key}
+            numColumns={1}
+            renderItem={({item}) => (
+                <>
+                  <TouchableOpacity
+                      style={styles.gridItem}
+                      onPress={item.key === '1' ? handleKahveFaliBak : showAlert}>
+                    <Image source={item.icon} style={styles.icon} />
+                    <Text style={styles.gridText}>{item.title}</Text>
+                  </TouchableOpacity>
 
-            {isFortuneGridVisible && item.key === '1' && (
-              <View style={styles.fortuneGridContainer}>
-                {savedFortunes.length > 0 ? (
-                  <FlatList
-                    data={savedFortunes}
-                    keyExtractor={(item, index) => index.toString()}
-                    renderItem={renderFortuneItem}
-                    contentContainerStyle={styles.fortuneGrid}
-                  />
-                ) : (
-                  <View style={styles.noFortunesContainer}>
-                    <Text style={styles.noFortunesText}>
-                      Kayıtlı falınız bulunmamaktadır. Hemen +'ya basınız ve
-                      falınızı baktırınız.
-                    </Text>
-                  </View>
-                )}
-              </View>
+                  {isFortuneGridVisible && item.key === '1' && (
+                      <View style={styles.fortuneGridContainer}>
+                        {savedFortunes.length > 0 ? (
+                            <FlatList
+                                data={savedFortunes} // Ensure this is always an array
+                                keyExtractor={(item, index) => index.toString()} // A function that returns a unique key for each item
+                                renderItem={renderFortuneItem} // A function that returns a React element to render each item
+                                contentContainerStyle={styles.fortuneGrid}
+                            />
+                        ) : (
+                            <View style={styles.noFortunesContainer}>
+                              <Text style={styles.noFortunesText}>
+                                Kayıtlı falınız bulunmamaktadır. Hemen +'ya basınız ve
+                                falınızı baktırınız.
+                              </Text>
+                            </View>
+                        )}
+                      </View>
+                  )}
+                </>
             )}
-          </>
-        )}
-        style={styles.grid}
-        contentContainerStyle={styles.contentContainer}
-        onScroll={Animated.event(
-          [{nativeEvent: {contentOffset: {y: scrollY}}}],
-          {useNativeDriver: false},
-        )}
-        scrollEventThrottle={16}
-      />
+            style={styles.grid}
+            contentContainerStyle={styles.contentContainer}
+            onScroll={Animated.event(
+                [{nativeEvent: {contentOffset: {y: scrollY}}}],
+                {useNativeDriver: false},
+            )}
+            scrollEventThrottle={16}
+        />
 
-      <View style={styles.navBar}>
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => console.log('Home')}>
-          <Image source={homeIcon} style={styles.icon} />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => setModalVisible(true)}>
-          <Image source={plusIcon} style={styles.icon} />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => navigation.navigate('Settings')}>
-          <Image source={gearIcon} style={styles.icon} />
-        </TouchableOpacity>
-      </View>
-
-      {/* First Modal for choosing options */}
-      <Modal
-        isVisible={modalVisible}
-        onSwipeComplete={() => setModalVisible(false)}
-        swipeDirection="down"
-        style={styles.modal}>
-        <View style={styles.modalContent}>
+        <View style={styles.navBar}>
           <TouchableOpacity
-            style={styles.closeButton2}
-            onPress={() => setModalVisible(false)}>
-            <Image source={closeIcon2} style={styles.closeIcon2} />
+              style={styles.navItem}
+              onPress={() => console.log('Home')}>
+            <Image source={homeIcon} style={styles.icon} />
           </TouchableOpacity>
           <TouchableOpacity
-            style={styles.modalButton}
-            onPress={() => {
-              setModalVisible(false);
-              setSecondModalVisible(true); // Open the second modal
-            }}>
-            <Image source={coffeeIcon} style={styles.modalIcon} />
-            <Text style={styles.modalText}>Kahve falı baktır</Text>
+              style={styles.navItem}
+              onPress={() => setModalVisible(true)}>
+            <Image source={plusIcon} style={styles.icon} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.modalButton} onPress={showAlert}>
-            <Image source={horoscopeIcon} style={styles.modalIcon} />
-            <Text style={styles.modalText}>Günlük Burçlar</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.modalButton} onPress={showAlert}>
-            <Image source={constellationIcon} style={styles.modalIcon} />
-            <Text style={styles.modalText}>Astroloji Haritası</Text>
+          <TouchableOpacity
+              style={styles.navItem}
+              onPress={() => navigation.navigate('Settings')}>
+            <Image source={gearIcon} style={styles.icon} />
           </TouchableOpacity>
         </View>
-      </Modal>
 
-      {/* Second Modal for Kahve falı baktır */}
-      <Modal
-        isVisible={secondModalVisible}
-        onSwipeComplete={() => setSecondModalVisible(false)}
-        swipeDirection="down"
-        style={styles.modal}>
-        <View style={styles.modalContent}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => {
-              setSecondModalVisible(false);
-              setModalVisible(true); // Reopen the first modal
-            }}>
-            <Image source={backIcon} style={styles.backIcon} />
-          </TouchableOpacity>
-          <Text style={styles.secondModalText}>
-            Lütfen fincanınızı ve fincan tabağınızı hazır konuma getiriniz.
-          </Text>
-          <TouchableOpacity
-            style={styles.secondModalButton}
-            onPress={() => {
-              setSecondModalVisible(false);
-              navigation.navigate('CoffeeCupUploadScreen', {userData});
-            }}>
-            <Text style={styles.modalText}>Devam Et</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
-    </LinearGradient>
+        {/* First Modal for choosing options */}
+        <Modal
+            isVisible={modalVisible}
+            onSwipeComplete={() => setModalVisible(false)}
+            swipeDirection="down"
+            style={styles.modal}>
+          <View style={styles.modalContent}>
+            <TouchableOpacity
+                style={styles.closeButton2}
+                onPress={() => setModalVisible(false)}>
+              <Image source={closeIcon} style={styles.closeIcon2} />
+            </TouchableOpacity>
+            <TouchableOpacity
+                style={styles.modalButton}
+                onPress={() => {
+                  setModalVisible(false);
+                  setSecondModalVisible(true); // Open the second modal
+                }}>
+              <Image source={coffeeIcon} style={styles.modalIcon} />
+              <Text style={styles.modalText}>Kahve falı baktır</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.modalButton} onPress={showAlert}>
+              <Image source={horoscopeIcon} style={styles.modalIcon} />
+              <Text style={styles.modalText}>Günlük Burçlar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.modalButton} onPress={showAlert}>
+              <Image source={constellationIcon} style={styles.modalIcon} />
+              <Text style={styles.modalText}>Astroloji Haritası</Text>
+            </TouchableOpacity>
+          </View>
+        </Modal>
+
+        {/* Second Modal for Kahve falı baktır */}
+        <Modal
+            isVisible={secondModalVisible}
+            onSwipeComplete={() => setSecondModalVisible(false)}
+            swipeDirection="down"
+            style={styles.modal}>
+          <View style={styles.modalContent}>
+            <TouchableOpacity
+                style={styles.backButton}
+                onPress={() => {
+                  setSecondModalVisible(false);
+                  setModalVisible(true); // Reopen the first modal
+                }}>
+              <Image source={backIcon} style={styles.backIcon} />
+            </TouchableOpacity>
+            <Text style={styles.secondModalText}>
+              Lütfen fincanınızı ve fincan tabağınızı hazır konuma getiriniz.
+            </Text>
+            <TouchableOpacity
+                style={styles.secondModalButton}
+                onPress={() => {
+                  setSecondModalVisible(false);
+                  navigation.navigate('CoffeeCupUploadScreen', {userData});
+                }}>
+              <Text style={styles.modalText}>Devam Et</Text>
+            </TouchableOpacity>
+          </View>
+        </Modal>
+      </LinearGradient>
   );
 };
 

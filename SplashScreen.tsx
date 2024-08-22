@@ -1,27 +1,47 @@
 import React, { useEffect, useMemo } from 'react';
 import { View, StyleSheet, Animated, ImageBackground, Text } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SplashScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const fadeAnim = useMemo(() => new Animated.Value(0), []);
   const scaleAnim = useMemo(() => new Animated.Value(1.2), []); // Starting bigger and shrinking down
 
   useEffect(() => {
-    const animations = Animated.sequence([
-      Animated.timing(scaleAnim, {
-        toValue: 1, // Animate scale to normal size
-        duration: 1000,
-        useNativeDriver: true,
-      }),
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 2000,
-        useNativeDriver: true,
-      }),
-    ]);
+    const checkUserStatus = async () => {
+      try {
+        const userToken = await AsyncStorage.getItem('userToken');
 
-    animations.start(() => navigation.navigate('Login')); // Navigate to Login after animations
+        const animations = Animated.sequence([
+          Animated.timing(scaleAnim, {
+            toValue: 1, // Animate scale to normal size
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 2000,
+            useNativeDriver: true,
+          }),
+        ]);
 
-    return () => animations.stop(); // Clean up the animation on unmount
+        animations.start(() => {
+          if (userToken) {
+            console.log('User token found:', userToken);
+            navigation.navigate('Main');
+          } else {
+            console.log('No user token found, navigating to Login');
+            navigation.navigate('Login');
+          }
+        });
+
+        return () => animations.stop(); // Clean up the animation on unmount
+      } catch (error) {
+        console.error('Error checking user status:', error);
+        // Handle any errors appropriately (e.g., navigate to an error screen)
+      }
+    };
+
+    checkUserStatus();
   }, [navigation, fadeAnim, scaleAnim]);
 
   return (

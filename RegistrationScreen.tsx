@@ -53,7 +53,7 @@ const RegistrationScreen = ({ navigation }) => {
   };
 
   const handleRegister = async () => {
-    setIsLoading(true); // Start loading
+    setIsLoading(true);
 
     try {
       const { userId, deviceDetails } = await signInAnonymously();
@@ -67,25 +67,33 @@ const RegistrationScreen = ({ navigation }) => {
           intention,
           birthday: birthday.toISOString(),
         };
+
+        // Log the userData object to ensure it's correct
+        console.log('UserData before saving:', userData);
+
         await saveUserData(userId, userData, deviceDetails);
+
         console.log('Navigating to Main with userData:', userData);
-        setIsLoading(false); // Stop loading
-        navigation.navigate('Main', { userData });
+
+        // Check if userData contains all necessary fields
+        if (userData && userData.name && userData.age) {
+          setIsLoading(false);
+          navigation.navigate('Main', { userData });
+        } else {
+          setIsLoading(false);
+          Alert.alert('Registration Error', 'Incomplete user data. Please check your inputs.');
+        }
       } else {
-        setIsLoading(false); // Stop loading
-        Alert.alert(
-            'Registration Error',
-            'Unable to register. Please try again.',
-        );
+        setIsLoading(false);
+        Alert.alert('Registration Error', 'Unable to register. Please try again.');
       }
     } catch (error) {
-      setIsLoading(false); // Stop loading
-      Alert.alert(
-          'Error',
-          'An error occurred during registration. Please try again.',
-      );
+      setIsLoading(false);
+      console.error('Registration error:', error);
+      Alert.alert('Error', 'An error occurred during registration. Please try again.');
     }
   };
+
 
 
   const formatDate = date => {
