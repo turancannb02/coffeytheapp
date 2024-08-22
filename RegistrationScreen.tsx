@@ -15,7 +15,9 @@ import {
 } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { signInAnonymously, saveUserData } from './authService';
+import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
+import { getDeviceDetails, saveUserData } from './authService';
 
 const RegistrationScreen = ({ navigation }) => {
   const [name, setName] = useState('');
@@ -27,11 +29,11 @@ const RegistrationScreen = ({ navigation }) => {
   const [birthday, setBirthday] = useState(new Date());
   const [isFormValid, setIsFormValid] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [isLoading, setIsLoading] = useState(false); // Loading state
+  const [isLoading, setIsLoading] = useState(false);
 
   const checkFormValidity = () => {
     setIsFormValid(
-      name.trim() !== '' && age.trim() !== '' && parseInt(age, 10) > 0,
+        name.trim() !== '' && age.trim() !== '' && parseInt(age, 10) > 0,
     );
   };
 
@@ -43,21 +45,23 @@ const RegistrationScreen = ({ navigation }) => {
 
   const handleBack = () => {
     Alert.alert(
-      'Çıkış Yap',
-      'Emin misiniz? İptal ederseniz girdiğiniz bilgiler silinecektir.',
-      [
-        { text: 'İptal', style: 'cancel' },
-        { text: 'Evet', onPress: () => navigation.goBack() },
-      ],
+        'Çıkış Yap',
+        'Emin misiniz? İptal ederseniz girdiğiniz bilgiler silinecektir.',
+        [
+          { text: 'İptal', style: 'cancel' },
+          { text: 'Evet', onPress: () => navigation.goBack() },
+        ],
     );
   };
 
   const handleRegister = async () => {
-    setIsLoading(true); // Start loading
+    setIsLoading(true);
 
     try {
-      const { userId, deviceDetails } = await signInAnonymously();
-      if (userId && deviceDetails) {
+      const { user } = await auth().signInAnonymously();
+      const deviceDetails = await getDeviceDetails();
+
+      if (user && deviceDetails) {
         const userData = {
           name,
           age,
@@ -67,159 +71,158 @@ const RegistrationScreen = ({ navigation }) => {
           intention,
           birthday: birthday.toISOString(),
         };
-        await saveUserData(userId, userData, deviceDetails);
-        console.log('Navigating to Main with userData:', userData);
-        setIsLoading(false); // Stop loading
+
+        await firestore()
+            .collection('test-users')
+            .doc(user.uid)
+            .set({ ...userData, device: deviceDetails });
+
+        await saveUserData(user.uid, userData, deviceDetails);
+
         navigation.navigate('Main', { userData });
       } else {
-        setIsLoading(false); // Stop loading
-        Alert.alert(
-          'Registration Error',
-          'Unable to register. Please try again.',
-        );
+        Alert.alert('Registration Error', 'Unable to register. Please try again.');
       }
     } catch (error) {
-      setIsLoading(false); // Stop loading
-      Alert.alert(
-        'Error',
-        'An error occurred during registration. Please try again.',
-      );
+      console.error('Error during registration:', error);
+      Alert.alert('Error', 'An error occurred during registration. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-
-  const formatDate = date => {
+  const formatDate = (date) => {
     return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView}>
-        <View style={styles.headerContainer}>
-          <TouchableOpacity style={styles.closeButton} onPress={handleBack}>
-            <Image
-              source={require('./assets/close.png')}
-              style={styles.closeIcon}
+      <SafeAreaView style={styles.container}>
+        <ScrollView style={styles.scrollView}>
+          <View style={styles.headerContainer}>
+            <TouchableOpacity style={styles.closeButton} onPress={handleBack}>
+              <Image
+                  source={require('./assets/close.png')}
+                  style={styles.closeIcon}
+              />
+            </TouchableOpacity>
+            <Text style={styles.header}>Kişisel Bilgiler</Text>
+          </View>
+
+          <View style={styles.form}>
+            <Text style={styles.label}>İsim</Text>
+            <TextInput
+                style={styles.input}
+                placeholder="İsim"
+                value={name}
+                onChangeText={setName}
+                onEndEditing={checkFormValidity}
+                editable={!isLoading}
             />
-          </TouchableOpacity>
-          <Text style={styles.header}>Kişisel Bilgiler</Text>
-        </View>
 
-        <View style={styles.form}>
-          <Text style={styles.label}>İsim</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="İsim"
-            value={name}
-            onChangeText={setName}
-            onEndEditing={checkFormValidity}
-            editable={!isLoading} // Disable input during loading
-          />
+            <Text style={styles.label}>Yaş</Text>
+            <TextInput
+                style={styles.input}
+                placeholder="Yaş"
+                keyboardType="numeric"
+                value={age}
+                onChangeText={setAge}
+                onEndEditing={checkFormValidity}
+                editable={!isLoading}
+            />
 
-          <Text style={styles.label}>Yaş</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Yaş"
-            keyboardType="numeric"
-            value={age}
-            onChangeText={setAge}
-            onEndEditing={checkFormValidity}
-            editable={!isLoading} // Disable input during loading
-          />
+            <Text style={styles.label}>Doğum Tarihi</Text>
+            <TouchableOpacity
+                onPress={() => setShowDatePicker(true)}
+                style={styles.datePickerButton}
+                disabled={isLoading}
+            >
+              <Text>{formatDate(birthday)}</Text>
+            </TouchableOpacity>
+            {showDatePicker && (
+                <DateTimePicker
+                    testID="dateTimePicker"
+                    value={birthday}
+                    mode="date"
+                    display="default"
+                    onChange={handleDateChange}
+                    maximumDate={new Date()}
+                />
+            )}
 
-          <Text style={styles.label}>Doğum Tarihi</Text>
+            <Text style={styles.label}>Cinsiyet</Text>
+            <RNPickerSelect
+                style={pickerSelectStyles}
+                onValueChange={setGender}
+                items={[
+                  { label: 'Erkek', value: 'Erkek' },
+                  { label: 'Kadın', value: 'Kadın' },
+                  { label: 'Diğer', value: 'Diğer' },
+                ]}
+                placeholder={{ label: 'Cinsiyet Seçin', value: null }}
+                disabled={isLoading}
+            />
+
+            <Text style={styles.label}>İlişki Durumu</Text>
+            <RNPickerSelect
+                style={pickerSelectStyles}
+                onValueChange={setStatus}
+                items={[
+                  { label: 'Bekar', value: 'Bekar' },
+                  { label: 'Evli', value: 'Evli' },
+                  { label: 'Nişanlı', value: 'Nişanlı' },
+                  { label: 'Boşanmış', value: 'Boşanmış' },
+                  { label: 'Karmaşık', value: 'Karmaşık' },
+                  { label: 'Diğer', value: 'Diğer' },
+                ]}
+                placeholder={{ label: 'İlişki Durumunuzu Seçin', value: null }}
+                disabled={isLoading}
+            />
+
+            <Text style={styles.label}>İlgi Alanı</Text>
+            <RNPickerSelect
+                style={pickerSelectStyles}
+                onValueChange={setSexualInterest}
+                items={[
+                  { label: 'Erkekler', value: 'Erkekler' },
+                  { label: 'Kadınlar', value: 'Kadınlar' },
+                  { label: 'Diğer', value: 'Diğer' },
+                ]}
+                placeholder={{ label: 'İlgi Alanınızı Seçin', value: null }}
+                disabled={isLoading}
+            />
+
+            <Text style={styles.label}>Falın Amacı</Text>
+            <RNPickerSelect
+                style={pickerSelectStyles}
+                onValueChange={setIntention}
+                items={[
+                  { label: 'Genel', value: 'Genel' },
+                  { label: 'Aşk', value: 'Aşk' },
+                  { label: 'Kariyer', value: 'Kariyer' },
+                  { label: 'Sağlık', value: 'Sağlık' },
+                ]}
+                placeholder={{ label: 'Falın Amacını Seçin', value: null }}
+                disabled={isLoading}
+            />
+          </View>
+        </ScrollView>
+        <View style={styles.footer}>
           <TouchableOpacity
-            onPress={() => setShowDatePicker(true)}
-            style={styles.datePickerButton}
-            disabled={isLoading} // Disable button during loading
+              style={[
+                styles.button,
+                isFormValid ? styles.buttonActive : styles.buttonInactive,
+              ]}
+              onPress={handleRegister}
+              disabled={!isFormValid || isLoading}
           >
-            <Text>{formatDate(birthday)}</Text>
+            {isLoading ? (
+                <ActivityIndicator size="large" color="#000" />
+            ) : (
+                <Text style={styles.buttonText}>Kayıt Ol</Text>
+            )}
           </TouchableOpacity>
-          {showDatePicker && (
-            <DateTimePicker
-              testID="dateTimePicker"
-              value={birthday}
-              mode="date"
-              display="default"
-              onChange={handleDateChange}
-              maximumDate={new Date()}
-            />
-          )}
-
-          <Text style={styles.label}>Cinsiyet</Text>
-          <RNPickerSelect
-            style={pickerSelectStyles}
-            onValueChange={setGender}
-            items={[
-              { label: 'Erkek', value: 'Erkek' },
-              { label: 'Kadın', value: 'Kadın' },
-              { label: 'Diğer', value: 'Diğer' },
-            ]}
-            placeholder={{ label: 'Cinsiyet Seçin', value: null }}
-            disabled={isLoading} // Disable picker during loading
-          />
-
-          <Text style={styles.label}>İlişki Durumu</Text>
-          <RNPickerSelect
-            style={pickerSelectStyles}
-            onValueChange={setStatus}
-            items={[
-              { label: 'Bekar', value: 'Bekar' },
-              { label: 'Evli', value: 'Evli' },
-              { label: 'Nişanlı', value: 'Nişanlı' },
-              { label: 'Boşanmış', value: 'Boşanmış' },
-              { label: 'Karmaşık', value: 'Karmaşık' },
-              { label: 'Diğer', value: 'Diğer' },
-            ]}
-            placeholder={{ label: 'İlişki Durumunuzu Seçin', value: null }}
-            disabled={isLoading} // Disable picker during loading
-          />
-
-          <Text style={styles.label}>İlgi Alanı</Text>
-          <RNPickerSelect
-            style={pickerSelectStyles}
-            onValueChange={setSexualInterest}
-            items={[
-              { label: 'Erkekler', value: 'Erkekler' },
-              { label: 'Kadınlar', value: 'Kadınlar' },
-              { label: 'Diğer', value: 'Diğer' },
-            ]}
-            placeholder={{ label: 'İlgi Alanınızı Seçin', value: null }}
-            disabled={isLoading} // Disable picker during loading
-          />
-
-          <Text style={styles.label}>Falın Amacı</Text>
-          <RNPickerSelect
-            style={pickerSelectStyles}
-            onValueChange={setIntention}
-            items={[
-              { label: 'Genel', value: 'Genel' },
-              { label: 'Aşk', value: 'Aşk' },
-              { label: 'Kariyer', value: 'Kariyer' },
-              { label: 'Sağlık', value: 'Sağlık' },
-            ]}
-            placeholder={{ label: 'Falın Amacını Seçin', value: null }}
-            disabled={isLoading} // Disable picker during loading
-          />
         </View>
-      </ScrollView>
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={[
-            styles.button,
-            isFormValid ? styles.buttonActive : styles.buttonInactive,
-          ]}
-          onPress={handleRegister}
-          disabled={!isFormValid || isLoading}
-        >
-          {isLoading ? (
-            <ActivityIndicator size="large" color="#000" />
-          ) : (
-            <Text style={styles.buttonText}>Kayıt Ol</Text>
-          )}
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
   );
 };
 
@@ -260,7 +263,7 @@ const styles = StyleSheet.create({
     borderColor: 'black',
     marginBottom: 15,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 3,
     elevation: 5,
@@ -272,7 +275,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 15,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 3,
     elevation: 5,
@@ -283,7 +286,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#ccc',
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 3,
     elevation: 5,

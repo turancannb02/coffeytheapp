@@ -26,12 +26,15 @@ const SplashScreen: React.FC = () => {
 
     animations.start(async () => {
       const userData = await getUserData();
-      if (userData) {
+
+      if (userData && userData.userId) {
+        // User data exists and userId is valid
         navigation.reset({
           index: 0,
           routes: [{ name: 'Main', params: { userData } }],
         });
       } else {
+        // No user data found, navigate to Login
         navigation.reset({
           index: 0,
           routes: [{ name: 'Login' }],
