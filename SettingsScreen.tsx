@@ -15,7 +15,7 @@ import {
 import {useNavigation} from '@react-navigation/native';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
-import { firebase } from '@react-native-firebase/auth';
+import {firebase} from '@react-native-firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import RNPickerSelect from 'react-native-picker-select';
 
@@ -33,45 +33,49 @@ const SettingsScreen = () => {
   const [isLoading, setIsLoading] = useState(false); // Loading state
 
   useEffect(() => {
-    const unsubscribe = firestore()
-        .collection('test-users')
-        .doc(auth().currentUser?.uid)
-        .onSnapshot(
-            documentSnapshot => {
-              if (documentSnapshot && documentSnapshot.exists) {
-                setUserDetails(documentSnapshot.data());
-              } else {
-                console.log('No such document!');
-              }
-            },
-            error => {
-              console.error('Error fetching document:', error);
-            },
-        );
+    const fetchUserData = async () => {
+      try {
+        const userId = await AsyncStorage.getItem('userId');
+        if (userId) {
+          const userDoc = await firestore()
+            .collection('test-users')
+            .doc(userId)
+            .get();
+          if (userDoc.exists) {
+            setUserData(userDoc.data());
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
 
-    return () => unsubscribe();
+    fetchUserData();
   }, []);
 
   const handleLogout = async () => {
     try {
-      await firebase.auth().signOut();
+      await auth().signOut();
       await AsyncStorage.removeItem('userToken');
+      await AsyncStorage.removeItem('userId');
       navigation.navigate('Login');
     } catch (error) {
-      console.error('Failed to logout:', error);
+      console.error('Error during logout:', error);
+      Alert.alert(
+        'Logout Error',
+        'An error occurred during logout. Please try again.',
+      );
     }
   };
-
-
 
   const handleUpdate = async () => {
     setIsLoading(true); // Start loading
     const {gender, status, sexualInterest, intention} = userDetails;
     try {
       await firestore()
-          .collection('test-users')
-          .doc(auth().currentUser.uid)
-          .set({gender, status, sexualInterest, intention}, {merge: true});
+        .collection('test-users')
+        .doc(auth().currentUser.uid)
+        .set({gender, status, sexualInterest, intention}, {merge: true});
       Alert.alert('Profil Güncellendi', 'Profiliniz başarıyla güncellendi.');
     } catch (error) {
       Alert.alert('Hata', 'Profil güncellenirken bir hata oluştu.');
@@ -80,60 +84,38 @@ const SettingsScreen = () => {
     }
   };
 
-  /*
   const handleDeleteAccount = async () => {
     Alert.alert(
-      'Hesabı Sil',
-      'Bunu yapmak istediğinize emin misiniz? Tüm verileriniz silinecek.',
+      'Delete Account',
+      'Are you sure you want to delete your account? This action is irreversible.',
       [
-        { text: 'İptal', style: 'cancel' },
+        {text: 'Cancel', style: 'cancel'},
         {
-          text: 'Evet',
+          text: 'Delete',
+          style: 'destructive',
           onPress: async () => {
-            setIsLoading(true); // Start loading
             try {
-              const userId = auth().currentUser.uid;
-              const userEmail = auth().currentUser.email; // Capture user email or any other identifying info
-
-              // Store the deletion request in "requested-deletions"
-              await firestore().collection('requested-deletions').doc(userId).set({
-                userId: userId,
-                requestTime: firestore.FieldValue.serverTimestamp(),
-              });
-
-              // Inform the user that the request has been received
-              Alert.alert('Hesap Silme Talebi', 'Hesap silme talebiniz alınmıştır.');
-
-              // Perform Firestore operations before account deletion
-              await firestore().collection('deleted-users').doc(userId).set({
-                userId: userId,
-                email: userEmail,
-                deletionTime: firestore.FieldValue.serverTimestamp(),
-              });
-
-              // Delete Firebase Auth account
-              await auth().currentUser.delete();
-
-              // Navigate to the LoginScreen after deletion
-              setTimeout(() => {
-                navigation.reset({
-                  index: 0,
-                  routes: [{ name: 'LoginScreen' }],
-                });
-              }, 1500); // 1.5 seconds delay
-
+              const userId = await AsyncStorage.getItem('userId');
+              if (userId) {
+                await firestore().collection('test-users').doc(userId).delete();
+                await auth().currentUser.delete();
+                await AsyncStorage.removeItem('userToken');
+                await AsyncStorage.removeItem('userId');
+                navigation.navigate('Login');
+              }
             } catch (error) {
-              console.error('Error handling deletion:', error);
-              Alert.alert('Hata', 'Hesap silinirken bir hata oluştu.');
-            } finally {
-              setIsLoading(false); // Stop loading
+              console.error('Error deleting account:', error);
+              Alert.alert(
+                'Delete Account Error',
+                'An error occurred while deleting your account. Please try again.',
+              );
             }
           },
         },
       ],
+      {cancelable: true},
     );
   };
-*/
 
   const handleChange = (name, value) => {
     setUserDetails(prevDetails => ({...prevDetails, [name]: value}));
@@ -144,113 +126,113 @@ const SettingsScreen = () => {
   };
 
   return (
-      <SafeAreaView style={styles.container}>
-        <ScrollView style={styles.scrollView}>
-          <View style={styles.headerContainer}>
-            <TouchableOpacity
-                style={styles.backButton}
-                onPress={() => navigation.goBack()}>
-              <Image
-                  source={require('./assets/back.png')}
-                  style={styles.backIcon}
-              />
-            </TouchableOpacity>
-            <Text style={styles.header}>Ayarlar</Text>
-          </View>
+    <SafeAreaView style={styles.container}>
+      <ScrollView style={styles.scrollView}>
+        <View style={styles.headerContainer}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}>
+            <Image
+              source={require('./assets/back.png')}
+              style={styles.backIcon}
+            />
+          </TouchableOpacity>
+          <Text style={styles.header}>Ayarlar</Text>
+        </View>
 
-          <Image
-              source={require('./assets/people.png')}
-              style={styles.profilePic}
+        <Image
+          source={require('./assets/people.png')}
+          style={styles.profilePic}
+        />
+
+        <View style={styles.form}>
+          <Text style={styles.label}>İsim</Text>
+          <TextInput
+            style={styles.inputNonEditable}
+            value={userDetails.name}
+            editable={false}
           />
 
-          <View style={styles.form}>
-            <Text style={styles.label}>İsim</Text>
-            <TextInput
-                style={styles.inputNonEditable}
-                value={userDetails.name}
-                editable={false}
-            />
+          <Text style={styles.label}>Yaş</Text>
+          <TextInput
+            style={styles.inputNonEditable}
+            value={userDetails.age}
+            editable={false}
+          />
 
-            <Text style={styles.label}>Yaş</Text>
-            <TextInput
-                style={styles.inputNonEditable}
-                value={userDetails.age}
-                editable={false}
-            />
+          <Text style={styles.label}>Cinsiyet</Text>
+          <RNPickerSelect
+            style={pickerSelectStyles}
+            onValueChange={value => handleChange('gender', value)}
+            items={[
+              {label: 'Erkek', value: 'Erkek'},
+              {label: 'Kadın', value: 'Kadın'},
+              {label: 'Diğer', value: 'Diğer'},
+            ]}
+            placeholder={{label: 'Cinsiyet Seçin', value: null}}
+            value={userDetails.gender}
+          />
 
-            <Text style={styles.label}>Cinsiyet</Text>
-            <RNPickerSelect
-                style={pickerSelectStyles}
-                onValueChange={value => handleChange('gender', value)}
-                items={[
-                  {label: 'Erkek', value: 'Erkek'},
-                  {label: 'Kadın', value: 'Kadın'},
-                  {label: 'Diğer', value: 'Diğer'},
-                ]}
-                placeholder={{label: 'Cinsiyet Seçin', value: null}}
-                value={userDetails.gender}
-            />
+          <Text style={styles.label}>İlişki Durumu</Text>
+          <RNPickerSelect
+            style={pickerSelectStyles}
+            onValueChange={value => handleChange('status', value)}
+            items={[
+              {label: 'Bekar', value: 'Bekar'},
+              {label: 'Evli', value: 'Evli'},
+              {label: 'Nişanlı', value: 'Nişanlı'},
+              {label: 'Boşanmış', value: 'Boşanmış'},
+              {label: 'Karmaşık', value: 'Karmaşık'},
+            ]}
+            placeholder={{label: 'İlişki Durumunuzu Seçin', value: null}}
+            value={userDetails.status}
+          />
 
-            <Text style={styles.label}>İlişki Durumu</Text>
-            <RNPickerSelect
-                style={pickerSelectStyles}
-                onValueChange={value => handleChange('status', value)}
-                items={[
-                  {label: 'Bekar', value: 'Bekar'},
-                  {label: 'Evli', value: 'Evli'},
-                  {label: 'Nişanlı', value: 'Nişanlı'},
-                  {label: 'Boşanmış', value: 'Boşanmış'},
-                  {label: 'Karmaşık', value: 'Karmaşık'},
-                ]}
-                placeholder={{label: 'İlişki Durumunuzu Seçin', value: null}}
-                value={userDetails.status}
-            />
+          <Text style={styles.label}>İlgi Alanı</Text>
+          <RNPickerSelect
+            style={pickerSelectStyles}
+            onValueChange={value => handleChange('sexualInterest', value)}
+            items={[
+              {label: 'Erkekler', value: 'Erkekler'},
+              {label: 'Kadınlar', value: 'Kadınlar'},
+              {label: 'Diğer', value: 'Diğer'},
+            ]}
+            placeholder={{label: 'İlgi Alanınızı Seçin', value: null}}
+            value={userDetails.sexualInterest}
+          />
 
-            <Text style={styles.label}>İlgi Alanı</Text>
-            <RNPickerSelect
-                style={pickerSelectStyles}
-                onValueChange={value => handleChange('sexualInterest', value)}
-                items={[
-                  {label: 'Erkekler', value: 'Erkekler'},
-                  {label: 'Kadınlar', value: 'Kadınlar'},
-                  {label: 'Diğer', value: 'Diğer'},
-                ]}
-                placeholder={{label: 'İlgi Alanınızı Seçin', value: null}}
-                value={userDetails.sexualInterest}
-            />
+          <TouchableOpacity
+            style={styles.updateButton}
+            onPress={handleUpdate}
+            disabled={isLoading}>
+            {isLoading ? (
+              <ActivityIndicator size="large" color="#fff" />
+            ) : (
+              <Text style={styles.updateButtonText}>Profil Güncelle</Text>
+            )}
+          </TouchableOpacity>
 
-            <TouchableOpacity
-                style={styles.updateButton}
-                onPress={handleUpdate}
-                disabled={isLoading}>
-              {isLoading ? (
-                  <ActivityIndicator size="large" color="#fff" />
-              ) : (
-                  <Text style={styles.updateButtonText}>Profil Güncelle</Text>
-              )}
-            </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.logoutButton}
+            onPress={handleLogout}
+            disabled={isLoading}>
+            {isLoading ? (
+              <ActivityIndicator size="large" color="#fff" />
+            ) : (
+              <Text style={styles.updateButtonText}>Çıkış Yap</Text>
+            )}
+          </TouchableOpacity>
+        </View>
 
-            <TouchableOpacity
-                style={styles.logoutButton}
-                onPress={handleLogout}
-                disabled={isLoading}>
-              {isLoading ? (
-                  <ActivityIndicator size="large" color="#fff" />
-              ) : (
-                  <Text style={styles.updateButtonText}>Çıkış Yap</Text>
-              )}
-            </TouchableOpacity>
-          </View>
-
-          <Text style={styles.footerText}>
-            Sorunuz mu var? Lütfen{' '}
-            <Text style={styles.emailLink} onPress={handleEmail}>
-              xyz@gmail.com
-            </Text>
-            'a mail yazınız.
+        <Text style={styles.footerText}>
+          Sorunuz mu var? Lütfen{' '}
+          <Text style={styles.emailLink} onPress={handleEmail}>
+            xyz@gmail.com
           </Text>
-        </ScrollView>
-      </SafeAreaView>
+          'a mail yazınız.
+        </Text>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
