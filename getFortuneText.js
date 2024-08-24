@@ -21,7 +21,7 @@ const getFortuneText = async (prompt) => {
     }, {
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer sk-svcacct-PQSINgr7CZ2Y5dtHEqqWm6xrCNYHc4JRsJXT18f6cRj5FLbSV3Vl_4d_DT3BlbkFJlxqaNFKzskjKwLFaWPSkVgKE2HoMh0RKbqUaIF1T94rWQ4TrEtnG1QQAA`, // replace with your actual API key
+        Authorization: `Bearer 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`, // replace with your actual API key
       },
     });
 
@@ -32,7 +32,7 @@ const getFortuneText = async (prompt) => {
       throw new Error('No response choices found.');
     }
   } catch (error) {
-    console.error("API isteği sırasında bir hata oluştu:", error.response ? error.response.data : error.message);
+    console.error("API request failed with error:", error.response ? error.response.data : error.message);
     return null;
   }
 };

@@ -68,33 +68,33 @@ const FortuneLoadingScreen = ({ navigation, route }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <Image
-        source={require('./assets/women_holding_coffee_cup.png')}
-        style={styles.image}
-      />
-      {loading ? (
-        <>
-          <ActivityIndicator size="large" color="#88400d" />
-          <Text style={styles.loadingText}>
-            Lütfen bekleyin, falınız hazırlanıyor... 🌟
-          </Text>
-        </>
-      ) : (
-        <TouchableOpacity
-          style={[
-            styles.button,
-            fortuneReady ? styles.buttonActive : styles.buttonDisabled,
-          ]}
-          onPress={() =>
-            navigation.navigate('FortuneTellerViewScreen', { fortuneText, userData })
-          }
-          disabled={!fortuneReady}
-        >
-          <Text style={styles.buttonText}>Falı Görüntüle! 🔮</Text>
-        </TouchableOpacity>
-      )}
-    </View>
+      <View style={styles.container}>
+        <Image
+            source={require('./assets/women_holding_coffee_cup.png')}
+            style={styles.image}
+        />
+        {loading ? (
+            <>
+              <ActivityIndicator size="large" color="#88400d" />
+              <Text style={styles.loadingText}>
+                Lütfen bekleyin, falınız hazırlanıyor... 🌟
+              </Text>
+            </>
+        ) : (
+            <TouchableOpacity
+                style={[
+                  styles.button,
+                  fortuneReady ? styles.buttonActive : styles.buttonDisabled,
+                ]}
+                onPress={() =>
+                    navigation.navigate('FortuneTellerViewScreen', { fortuneText, userData })
+                }
+                disabled={!fortuneReady}
+            >
+              <Text style={styles.buttonText}>Falı Görüntüle! 🔮</Text>
+            </TouchableOpacity>
+        )}
+      </View>
   );
 };
 

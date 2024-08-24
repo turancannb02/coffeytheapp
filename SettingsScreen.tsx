@@ -17,6 +17,7 @@ import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import RNPickerSelect from 'react-native-picker-select';
+import {checkSignInStatus} from './authService'; // Ensure this path is correct
 
 const SettingsScreen = () => {
   const navigation = useNavigation();
@@ -29,116 +30,100 @@ const SettingsScreen = () => {
     intention: '',
     birthday: new Date(),
   });
-  const [isLoading, setIsLoading] = useState(false); // Loading state
+  const [isLoading, setIsLoading] = useState(false);
+  const [isAnonymous, setIsAnonymous] = useState(false); // Track if the user is anonymous
 
   useEffect(() => {
-    const unsubscribe = firestore()
-      .collection('users')
-      .doc(auth().currentUser?.uid)
-      .onSnapshot(
-        documentSnapshot => {
-          if (documentSnapshot && documentSnapshot.exists) {
-            setUserDetails(documentSnapshot.data());
-          } else {
-            console.log('No such document!');
+    const fetchUserData = async () => {
+      try {
+        const userId = await AsyncStorage.getItem('userId');
+        if (userId) {
+          const userDoc = await firestore()
+            .collection('test-users')
+            .doc(userId)
+            .get();
+          if (userDoc.exists) {
+            setUserDetails(userDoc.data());
           }
-        },
-        error => {
-          console.error('Error fetching document:', error);
-        },
-      );
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
 
-    return () => unsubscribe();
+    const checkUserStatus = async () => {
+      const {isSignedIn, userId} = await checkSignInStatus();
+      setIsAnonymous(isSignedIn && !userId);
+    };
+
+    fetchUserData();
+    checkUserStatus();
   }, []);
 
   const handleLogout = async () => {
     try {
-      setIsLoading(true);
-      await AsyncStorage.removeItem('userId'); // Clear only the userId, not all data
-      await auth().signOut(); // Sign out the user from Firebase Auth
-      navigation.reset({
-        index: 0,
-        routes: [{name: 'Login'}],
-      });
+      await auth().signOut();
+      await AsyncStorage.removeItem('userToken');
+      await AsyncStorage.removeItem('userId');
+      navigation.navigate('Login');
     } catch (error) {
-      Alert.alert('Hata', 'Çıkış yapılırken bir hata oluştu.');
-    } finally {
-      setIsLoading(false);
+      console.error('Error during logout:', error);
+      Alert.alert(
+        'Logout Error',
+        'An error occurred during logout. Please try again.',
+      );
     }
   };
 
-
   const handleUpdate = async () => {
-    setIsLoading(true); // Start loading
+    setIsLoading(true);
     const {gender, status, sexualInterest, intention} = userDetails;
     try {
       await firestore()
-        .collection('users')
+        .collection('test-users')
         .doc(auth().currentUser.uid)
         .set({gender, status, sexualInterest, intention}, {merge: true});
       Alert.alert('Profil Güncellendi', 'Profiliniz başarıyla güncellendi.');
     } catch (error) {
       Alert.alert('Hata', 'Profil güncellenirken bir hata oluştu.');
     } finally {
-      setIsLoading(false); // Stop loading
+      setIsLoading(false);
     }
   };
-
   /*
   const handleDeleteAccount = async () => {
     Alert.alert(
-      'Hesabı Sil',
-      'Bunu yapmak istediğinize emin misiniz? Tüm verileriniz silinecek.',
+      'Delete Account',
+      'Are you sure you want to delete your account? This action is irreversible.',
       [
-        { text: 'İptal', style: 'cancel' },
+        {text: 'Cancel', style: 'cancel'},
         {
-          text: 'Evet',
+          text: 'Delete',
+          style: 'destructive',
           onPress: async () => {
-            setIsLoading(true); // Start loading
             try {
-              const userId = auth().currentUser.uid;
-              const userEmail = auth().currentUser.email; // Capture user email or any other identifying info
-
-              // Store the deletion request in "requested-deletions"
-              await firestore().collection('requested-deletions').doc(userId).set({
-                userId: userId,
-                requestTime: firestore.FieldValue.serverTimestamp(),
-              });
-
-              // Inform the user that the request has been received
-              Alert.alert('Hesap Silme Talebi', 'Hesap silme talebiniz alınmıştır.');
-
-              // Perform Firestore operations before account deletion
-              await firestore().collection('deleted-users').doc(userId).set({
-                userId: userId,
-                email: userEmail,
-                deletionTime: firestore.FieldValue.serverTimestamp(),
-              });
-
-              // Delete Firebase Auth account
-              await auth().currentUser.delete();
-
-              // Navigate to the LoginScreen after deletion
-              setTimeout(() => {
-                navigation.reset({
-                  index: 0,
-                  routes: [{ name: 'LoginScreen' }],
-                });
-              }, 1500); // 1.5 seconds delay
-
+              const userId = await AsyncStorage.getItem('userId');
+              if (userId) {
+                await firestore().collection('test-users').doc(userId).delete();
+                await auth().currentUser.delete();
+                await AsyncStorage.removeItem('userToken');
+                await AsyncStorage.removeItem('userId');
+                navigation.navigate('Login');
+              }
             } catch (error) {
-              console.error('Error handling deletion:', error);
-              Alert.alert('Hata', 'Hesap silinirken bir hata oluştu.');
-            } finally {
-              setIsLoading(false); // Stop loading
+              console.error('Error deleting account:', error);
+              Alert.alert(
+                'Delete Account Error',
+                'An error occurred while deleting your account. Please try again.',
+              );
             }
           },
         },
       ],
+      {cancelable: true},
     );
   };
 */
-
   const handleChange = (name, value) => {
     setUserDetails(prevDetails => ({...prevDetails, [name]: value}));
   };
@@ -234,16 +219,18 @@ const SettingsScreen = () => {
             )}
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.logoutButton}
-            onPress={handleLogout}
-            disabled={isLoading}>
-            {isLoading ? (
-              <ActivityIndicator size="large" color="#fff" />
-            ) : (
-              <Text style={styles.updateButtonText}>Çıkış Yap</Text>
-            )}
-          </TouchableOpacity>
+          {!isAnonymous && (
+            <TouchableOpacity
+              style={styles.logoutButton}
+              onPress={handleLogout}
+              disabled={isLoading}>
+              {isLoading ? (
+                <ActivityIndicator size="large" color="#fff" />
+              ) : (
+                <Text style={styles.updateButtonText}>Çıkış Yap</Text>
+              )}
+            </TouchableOpacity>
+          )}
         </View>
 
         <Text style={styles.footerText}>
@@ -308,7 +295,6 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 3,
-    elevation: 5,
   },
   updateButton: {
     backgroundColor: '#8a4412',
@@ -320,7 +306,6 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 3,
-    elevation: 5,
   },
   updateButtonText: {
     fontSize: 24,
@@ -337,7 +322,6 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 3,
-    elevation: 5,
   },
   buttonDisabled: {
     opacity: 0.6,
@@ -353,7 +337,6 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 3,
-    elevation: 5,
   },
   footerText: {
     fontSize: 16,
@@ -376,7 +359,6 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 3,
-    elevation: 5,
   },
 });
 

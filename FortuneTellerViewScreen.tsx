@@ -61,29 +61,29 @@ const FortuneTellerViewScreen = ({ navigation, route }) => {
   };
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.scrollViewContent}>
-      <View style={styles.headerContainer}>
-        <Text style={styles.headerText}>Fal Yorumunuz</Text>
-        <View style={styles.iconContainer}>
-          <TouchableOpacity onPress={handleSave}>
-            <Image source={require('./assets/star.png')} style={styles.icon} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={handleShare}>
-            <Image source={require('./assets/share.png')} style={styles.icon} />
-          </TouchableOpacity>
+      <ScrollView
+          style={styles.container}
+          contentContainerStyle={styles.scrollViewContent}>
+        <View style={styles.headerContainer}>
+          <Text style={styles.headerText}>Fal Yorumunuz</Text>
+          <View style={styles.iconContainer}>
+            <TouchableOpacity onPress={handleSave}>
+              <Image source={require('./assets/star.png')} style={styles.icon} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleShare}>
+              <Image source={require('./assets/share.png')} style={styles.icon} />
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
-      <View style={styles.fortuneContainer}>
-        <Text style={styles.fortuneText}>{fortuneText}</Text>
-      </View>
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => navigation.navigate('Main', { userData: route.params.userData })}>
-        <Text style={styles.buttonText}>Ana Menüye Dön</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        <View style={styles.fortuneContainer}>
+          <Text style={styles.fortuneText}>{fortuneText}</Text>
+        </View>
+        <TouchableOpacity
+            style={styles.button}
+            onPress={() => navigation.navigate('Main', { userData: route.params.userData })}>
+          <Text style={styles.buttonText}>Ana Menüye Dön</Text>
+        </TouchableOpacity>
+      </ScrollView>
   );
 };
 
