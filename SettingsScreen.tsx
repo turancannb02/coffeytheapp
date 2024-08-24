@@ -15,9 +15,9 @@ import {
 import {useNavigation} from '@react-navigation/native';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
-import {firebase} from '@react-native-firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import RNPickerSelect from 'react-native-picker-select';
+import {checkSignInStatus} from './authService'; // Ensure this path is correct
 
 const SettingsScreen = () => {
   const navigation = useNavigation();
@@ -30,7 +30,8 @@ const SettingsScreen = () => {
     intention: '',
     birthday: new Date(),
   });
-  const [isLoading, setIsLoading] = useState(false); // Loading state
+  const [isLoading, setIsLoading] = useState(false);
+  const [isAnonymous, setIsAnonymous] = useState(false); // Track if the user is anonymous
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -42,7 +43,7 @@ const SettingsScreen = () => {
             .doc(userId)
             .get();
           if (userDoc.exists) {
-            setUserData(userDoc.data());
+            setUserDetails(userDoc.data());
           }
         }
       } catch (error) {
@@ -50,7 +51,13 @@ const SettingsScreen = () => {
       }
     };
 
+    const checkUserStatus = async () => {
+      const {isSignedIn, userId} = await checkSignInStatus();
+      setIsAnonymous(isSignedIn && !userId);
+    };
+
     fetchUserData();
+    checkUserStatus();
   }, []);
 
   const handleLogout = async () => {
@@ -69,7 +76,7 @@ const SettingsScreen = () => {
   };
 
   const handleUpdate = async () => {
-    setIsLoading(true); // Start loading
+    setIsLoading(true);
     const {gender, status, sexualInterest, intention} = userDetails;
     try {
       await firestore()
@@ -80,10 +87,10 @@ const SettingsScreen = () => {
     } catch (error) {
       Alert.alert('Hata', 'Profil güncellenirken bir hata oluştu.');
     } finally {
-      setIsLoading(false); // Stop loading
+      setIsLoading(false);
     }
   };
-
+  /*
   const handleDeleteAccount = async () => {
     Alert.alert(
       'Delete Account',
@@ -116,7 +123,7 @@ const SettingsScreen = () => {
       {cancelable: true},
     );
   };
-
+*/
   const handleChange = (name, value) => {
     setUserDetails(prevDetails => ({...prevDetails, [name]: value}));
   };
@@ -212,16 +219,18 @@ const SettingsScreen = () => {
             )}
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.logoutButton}
-            onPress={handleLogout}
-            disabled={isLoading}>
-            {isLoading ? (
-              <ActivityIndicator size="large" color="#fff" />
-            ) : (
-              <Text style={styles.updateButtonText}>Çıkış Yap</Text>
-            )}
-          </TouchableOpacity>
+          {!isAnonymous && (
+            <TouchableOpacity
+              style={styles.logoutButton}
+              onPress={handleLogout}
+              disabled={isLoading}>
+              {isLoading ? (
+                <ActivityIndicator size="large" color="#fff" />
+              ) : (
+                <Text style={styles.updateButtonText}>Çıkış Yap</Text>
+              )}
+            </TouchableOpacity>
+          )}
         </View>
 
         <Text style={styles.footerText}>
@@ -286,7 +295,6 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 3,
-    elevation: 5,
   },
   updateButton: {
     backgroundColor: '#8a4412',
@@ -298,7 +306,6 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 3,
-    elevation: 5,
   },
   updateButtonText: {
     fontSize: 24,
@@ -315,7 +322,6 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 3,
-    elevation: 5,
   },
   buttonDisabled: {
     opacity: 0.6,
@@ -331,7 +337,6 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 3,
-    elevation: 5,
   },
   footerText: {
     fontSize: 16,
@@ -354,7 +359,6 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 3,
-    elevation: 5,
   },
 });
 

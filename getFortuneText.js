@@ -21,7 +21,7 @@ const getFortuneText = async (prompt) => {
     }, {
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer sk-svcat-PQSIIng7CZ2Y5dtHEqqW6mxrCNYHc4JRjXT18f6cRj5FLbSV3Vl_4d_DT3BlbkFJlxqFnFTXXGIT89s9nG2P2u`, // replace with your actual API key
+        Authorization: `Bearer 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`, // replace with your actual API key
       },
     });
 

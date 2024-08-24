@@ -1,66 +1,84 @@
-import React, {useEffect, useMemo} from 'react';
-import {View, StyleSheet, Animated, ImageBackground, Text} from 'react-native';
+import React, { useEffect, useMemo } from 'react';
+import { View, StyleSheet, Animated, ImageBackground, Text } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
+import { firebase } from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
+import { useUser } from './UserContext';
 
-const SplashScreen: React.FC<{navigation: any}> = ({navigation}) => {
+const SplashScreen: React.FC = () => {
   const fadeAnim = useMemo(() => new Animated.Value(0), []);
   const scaleAnim = useMemo(() => new Animated.Value(1.2), []);
+  const navigation = useNavigation();
+  const { setUserData } = useUser();
 
   useEffect(() => {
     const checkUserStatus = async () => {
       try {
-        const userToken = await AsyncStorage.getItem('userToken');
+        const userToken = await AsyncStorage.getItem('userId');
+        if (userToken) {
+          const user = firebase.auth().currentUser;
 
-        const animations = Animated.sequence([
-          Animated.timing(scaleAnim, {
-            toValue: 1,
-            duration: 1000,
-            useNativeDriver: true,
-          }),
-          Animated.timing(fadeAnim, {
-            toValue: 1,
-            duration: 2000,
-            useNativeDriver: true,
-          }),
-        ]);
-
-        animations.start(() => {
-          if (userToken) {
-            navigation.navigate('Main');
-          } else {
-            navigation.navigate('Login');
+          if (!user) {
+            await firebase.auth().signInAnonymously();
           }
-        });
 
-        return () => animations.stop();
+          const userDoc = await firestore().collection('test-users').doc(userToken).get();
+          const userData = userDoc.data();
+
+          setUserData(userData);
+          navigation.navigate('Main');
+        } else {
+          navigation.navigate('Login');
+        }
       } catch (error) {
         console.error('Error checking user status:', error);
+        navigation.navigate('Login');
       }
     };
 
-    checkUserStatus();
-  }, [navigation, fadeAnim, scaleAnim]);
+    const animations = Animated.sequence([
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 2000,
+        useNativeDriver: true,
+      }),
+    ]);
+
+    animations.start(() => {
+      checkUserStatus();
+    });
+
+    return () => animations.stop();
+  }, [navigation, fadeAnim, scaleAnim, setUserData]);
 
   return (
-    <ImageBackground
-      source={require('./assets/background-3.png')}
-      style={styles.background}
-      resizeMode="cover">
-      <View style={styles.overlay}>
-        <View style={styles.splashContainer}>
-          <Animated.Text
-            style={[
-              styles.title,
-              {
-                opacity: fadeAnim,
-                transform: [{scale: scaleAnim}],
-              },
-            ]}>
-            Coffey'e Hoşgeldiniz!
-          </Animated.Text>
+      <ImageBackground
+          source={require('./assets/background-3.png')}
+          style={styles.background}
+          resizeMode="cover"
+      >
+        <View style={styles.overlay}>
+          <View style={styles.splashContainer}>
+            <Animated.Text
+                style={[
+                  styles.title,
+                  {
+                    opacity: fadeAnim,
+                    transform: [{ scale: scaleAnim }],
+                  },
+                ]}
+            >
+              Coffey'e Hoşgeldiniz!
+            </Animated.Text>
+          </View>
         </View>
-      </View>
-    </ImageBackground>
+      </ImageBackground>
   );
 };
 

@@ -1,8 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { firebase } from '@react-native-firebase/auth';
+import {firebase} from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import DeviceInfo from 'react-native-device-info';
-import { Platform } from 'react-native';
+import {Platform} from 'react-native';
+import {useUser} from '../UserContext'; // Adjust the path to your UserContext
 
 // Function to initialize the user
 export const initializeUser = async (userData) => {
@@ -12,13 +13,23 @@ export const initializeUser = async (userData) => {
     if (!user) {
       // Sign in anonymously if no user is signed in
       const newUser = await firebase.auth().signInAnonymously();
-      console.log('Anonymous user signed in:', newUser.user.uid);
+      const userId = newUser.user.uid;
+
+      // Save userId to AsyncStorage
+      await AsyncStorage.setItem('userId', userId);
+
+      console.log('Anonymous user signed in:', userId);
       // Create Firestore document with new UID and user data
-      await createUserDocument(newUser.user.uid, userData);
+      await createUserDocument(userId, userData);
     } else {
-      console.log('User already signed in:', user.uid);
+      const userId = user.uid;
+
+      // Save userId to AsyncStorage
+      await AsyncStorage.setItem('userId', userId);
+
+      console.log('User already signed in:', userId);
       // Update Firestore document with user data
-      await createUserDocument(user.uid, userData);
+      await createUserDocument(userId, userData);
     }
   } catch (error) {
     console.error('Failed to initialize user:', error);
@@ -35,12 +46,12 @@ const getNextUserNumber = async () => {
     const nextNumber = currentNumber + 1;
 
     // Update the document with the new number
-    await docRef.set({ latestNumber: nextNumber });
+    await docRef.set({latestNumber: nextNumber});
 
     return nextNumber;
   } else {
     // Initialize if the document doesn't exist
-    await docRef.set({ latestNumber: 1 });
+    await docRef.set({latestNumber: 1});
     return 1;
   }
 };

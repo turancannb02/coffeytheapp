@@ -1,31 +1,22 @@
-import React, {useEffect, useState, useRef} from 'react';
+import React, {useState, useRef} from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   Image,
+  ImageSourcePropType,
   Alert,
   Animated,
-  FlatList,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import LinearGradient from 'react-native-linear-gradient';
 import {Swipeable} from 'react-native-gesture-handler';
 import Modal from 'react-native-modal';
+import {useUser} from './UserContext'; // Import the useUser hook
 
-const MainScreen = ({route}) => {
-  const {userData} = route.params || {userData: null};
-  console.log('MainScreen received userData:', userData);
-
-  if (!userData) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>User data is missing!</Text>
-      </View>
-    );
-  }
+const MainScreen = () => {
+  const {userData} = useUser(); // Access user data from context
 
   const [savedFortunes, setSavedFortunes] = useState([]);
   const [isFortuneGridVisible, setIsFortuneGridVisible] = useState(false);
@@ -50,23 +41,6 @@ const MainScreen = ({route}) => {
     {key: '2', title: 'Günlük Burçlar', icon: horoscopeIcon},
     {key: '3', title: 'Astroloji Haritası', icon: constellationIcon},
   ];
-
-  useEffect(() => {
-    const fetchSavedFortunes = async () => {
-      try {
-        const saved = await AsyncStorage.getItem('savedFortunes');
-        if (saved) {
-          setSavedFortunes(JSON.parse(saved));
-        } else {
-          setSavedFortunes([]);
-        }
-      } catch (error) {
-        console.error('Error fetching saved fortunes:', error);
-      }
-    };
-
-    fetchSavedFortunes();
-  }, []);
 
   const handleKahveFaliBak = () => {
     setIsFortuneGridVisible(!isFortuneGridVisible);
@@ -94,13 +68,9 @@ const MainScreen = ({route}) => {
     );
   };
 
-  const deleteFortune = async index => {
+  const deleteFortune = index => {
     const updatedFortunes = savedFortunes.filter((_, i) => i !== index);
     setSavedFortunes(updatedFortunes);
-    await AsyncStorage.setItem(
-      'savedFortunes',
-      JSON.stringify(updatedFortunes),
-    );
   };
 
   const handleDeleteConfirmation = index => {
@@ -130,8 +100,8 @@ const MainScreen = ({route}) => {
     </TouchableOpacity>
   );
 
-  const renderFortuneItem = ({item, index}) => (
-    <Swipeable renderRightActions={() => renderRightActions(index)}>
+  const renderFortuneItem = (item, index) => (
+    <Swipeable renderRightActions={() => renderRightActions(index)} key={index}>
       <TouchableOpacity
         style={styles.fortuneItem}
         onPress={() =>
@@ -161,11 +131,13 @@ const MainScreen = ({route}) => {
         style={[
           styles.welcomeText,
           {
-            fontSize,
+            fontSize: fontSize,
             transform: [
               {translateX: welcomePositionX},
               {translateY: welcomePositionY},
             ],
+            textAlign: 'center',
+            flex: 1,
           },
         ]}>
         👋 Hoşgeldin {userData.name}!
@@ -205,51 +177,35 @@ const MainScreen = ({route}) => {
   return (
     <LinearGradient colors={['#fff', '#f8d8c1']} style={styles.container}>
       <Header />
-
-      <Animated.FlatList
-        data={services}
-        keyExtractor={item => item.key}
-        numColumns={1}
-        renderItem={({item}) => (
-          <>
+      <View style={styles.gridContainer}>
+        {services.map(service => (
+          <View key={service.key}>
             <TouchableOpacity
               style={styles.gridItem}
-              onPress={item.key === '1' ? handleKahveFaliBak : showAlert}>
-              <Image source={item.icon} style={styles.icon} />
-              <Text style={styles.gridText}>{item.title}</Text>
+              onPress={service.key === '1' ? handleKahveFaliBak : showAlert}>
+              <Image source={service.icon} style={styles.icon} />
+              <Text style={styles.gridText}>{service.title}</Text>
             </TouchableOpacity>
 
-            {isFortuneGridVisible && item.key === '1' && (
-                <View style={styles.fortuneGridContainer}>
-                  {Array.isArray(savedFortunes) && savedFortunes.length > 0 ? (
-                      <FlatList
-                          data={savedFortunes}
-                          keyExtractor={(item, index) => index.toString()}
-                          renderItem={renderFortuneItem}
-                          contentContainerStyle={styles.fortuneGrid}
-                      />
-                  ) : (
-                      <View style={styles.noFortunesContainer}>
-                        <Text style={styles.noFortunesText}>
-                          Kayıtlı falınız bulunmamaktadır. Hemen +'ya basınız ve
-                          falınızı baktırınız.
-                        </Text>
-                      </View>
-                  )}
-                </View>
+            {isFortuneGridVisible && service.key === '1' && (
+              <View style={styles.fortuneGridContainer}>
+                {Array.isArray(savedFortunes) && savedFortunes.length > 0 ? (
+                  savedFortunes.map((fortune, index) =>
+                    renderFortuneItem(fortune, index),
+                  )
+                ) : (
+                  <View style={styles.noFortunesContainer}>
+                    <Text style={styles.noFortunesText}>
+                      Kayıtlı falınız bulunmamaktadır. Hemen +'ya basınız ve
+                      falınızı baktırınız.
+                    </Text>
+                  </View>
+                )}
+              </View>
             )}
-
-          </>
-        )}
-        style={styles.grid}
-        contentContainerStyle={styles.contentContainer}
-        onScroll={Animated.event(
-          [{nativeEvent: {contentOffset: {y: scrollY}}}],
-          {useNativeDriver: false},
-        )}
-        scrollEventThrottle={16}
-      />
-
+          </View>
+        ))}
+      </View>
       <View style={styles.navBar}>
         <TouchableOpacity
           style={styles.navItem}
@@ -267,8 +223,6 @@ const MainScreen = ({route}) => {
           <Image source={gearIcon} style={styles.icon} />
         </TouchableOpacity>
       </View>
-
-      {/* First Modal for choosing options */}
       <Modal
         isVisible={modalVisible}
         onSwipeComplete={() => setModalVisible(false)}
@@ -300,7 +254,6 @@ const MainScreen = ({route}) => {
         </View>
       </Modal>
 
-      {/* Second Modal for Kahve falı baktır */}
       <Modal
         isVisible={secondModalVisible}
         onSwipeComplete={() => setSecondModalVisible(false)}
@@ -335,13 +288,11 @@ const MainScreen = ({route}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 0,
+    justifyContent: 'flex-start', // Ensure everything is aligned at the top initially
     position: 'relative',
-    justifyContent: 'space-between',
   },
   header: {
-    height: 120,
-    paddingTop: 50,
+    height: 250,
     paddingHorizontal: 10,
     flexDirection: 'row',
     alignItems: 'center',
@@ -352,6 +303,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 3,
     elevation: 5,
+    zIndex: 1,
   },
   wheelButton: {
     position: 'absolute',
@@ -376,6 +328,9 @@ const styles = StyleSheet.create({
   grid: {
     flex: 1,
     width: '100%',
+    alignItems: 'center',  // Center the grid items horizontally
+    justifyContent: 'flex-start',  // Start from the top under the welcome text
+    marginTop: 20,  // Adjust as needed to move the grids closer to the welcomeText
   },
   contentContainer: {
     marginTop: 60,
@@ -383,7 +338,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   fortuneGridContainer: {
-    marginVertical: 10,
+    marginVertical: 20,
     marginRight: 20,
     marginLeft: 20,
   },
@@ -439,6 +394,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    marginHorizontal: 40,
     margin: 10,
     padding: 10,
     height: 100,
@@ -448,7 +404,7 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-    elevation: 3,
+    elevation: 5,
   },
   gridText: {
     fontSize: 24,
@@ -464,8 +420,10 @@ const styles = StyleSheet.create({
     fontSize: 36,
     color: '#88400d',
     fontFamily: 'Nunito-Black',
-    alignSelf: 'center',
-    marginTop: 30,
+    textAlign: 'center',
+    marginTop: 50,
+    zIndex: 1,  // Ensure it's on top
+    position: 'relative',  // Position relative to avoid overlap issues
   },
   navBar: {
     flexDirection: 'row',
