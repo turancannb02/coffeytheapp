@@ -10,9 +10,10 @@ import {
   Alert,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
 
 const FortuneTellerViewScreen = ({ navigation, route }) => {
-  const { fortuneText } = route.params;
+  const { fortuneText, userData, updateSavedFortunes } = route.params;
   const [savedFortunes, setSavedFortunes] = useState([]);
 
   useEffect(() => {
@@ -80,13 +81,12 @@ const FortuneTellerViewScreen = ({ navigation, route }) => {
         </View>
         <TouchableOpacity
             style={styles.button}
-            onPress={() => navigation.navigate('Main', { userData: route.params.userData })}>
+            onPress={() => navigation.navigate('Main', { userData })}>
           <Text style={styles.buttonText}>Ana Menüye Dön</Text>
         </TouchableOpacity>
       </ScrollView>
   );
 };
-
 
 const styles = StyleSheet.create({
   container: {
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 20,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
