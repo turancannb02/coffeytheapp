@@ -1,27 +1,30 @@
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   Image,
-  ImageSourcePropType,
   Alert,
   Animated,
+  ScrollView,
+  RefreshControl,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import {Swipeable} from 'react-native-gesture-handler';
 import Modal from 'react-native-modal';
-import {useUser} from './UserContext'; // Import the useUser hook
+import {useUser} from './UserContext';
+import firestore from '@react-native-firebase/firestore';
 
 const MainScreen = () => {
-  const {userData} = useUser(); // Access user data from context
-
+  const {userData, setUserData} = useUser();
+  const [refreshing, setRefreshing] = useState(false);
   const [savedFortunes, setSavedFortunes] = useState([]);
   const [isFortuneGridVisible, setIsFortuneGridVisible] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [secondModalVisible, setSecondModalVisible] = useState(false);
+  const [coinsModalVisible, setCoinsModalVisible] = useState(false);
   const navigation = useNavigation();
   const scrollY = useRef(new Animated.Value(0)).current;
 
@@ -29,7 +32,7 @@ const MainScreen = () => {
   const plusIcon = require('./assets/plus.png');
   const gearIcon = require('./assets/gear.png');
   const wheelIcon = require('./assets/wheel.png');
-  const notificationIcon = require('./assets/bell.png');
+  const coinsIcon = require('./assets/coins.png');
   const coffeeIcon = require('./assets/coffee.png');
   const horoscopeIcon = require('./assets/horoscope.png');
   const constellationIcon = require('./assets/constellation.png');
@@ -37,175 +40,125 @@ const MainScreen = () => {
   const backIcon = require('./assets/back.png');
 
   const services = [
-    {key: '1', title: 'Kahve falı baktır', icon: coffeeIcon},
-    {key: '2', title: 'Günlük Burçlar', icon: horoscopeIcon},
-    {key: '3', title: 'Astroloji Haritası', icon: constellationIcon},
+    {key: '1', title: 'Geçmiş Kahve Falları', icon: coffeeIcon},
+    {key: '2', title: 'Geçmiş Günlük Burçlar', icon: horoscopeIcon},
+    {key: '3', title: 'Geçmiş Astroloji Haritası', icon: constellationIcon},
   ];
 
+  useEffect(() => {
+    fetchUpdatedUserData();
+  }, []);
+
+  const fetchUpdatedUserData = async () => {
+    try {
+      const userId = userData?.userId;
+      if (userId) {
+        const userDoc = await firestore()
+          .collection('test-users')
+          .doc(userId)
+          .get();
+        setUserData(userDoc.data());
+      }
+    } catch (error) {
+      console.error('Error fetching updated user data:', error);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchUpdatedUserData();
+    setRefreshing(false);
+  };
+
   const handleKahveFaliBak = () => {
-    setIsFortuneGridVisible(!isFortuneGridVisible);
+    if (userData?.REMAINING_COINS > 0) {
+      setIsFortuneGridVisible(!isFortuneGridVisible);
+    } else {
+      Alert.alert('Kalan fal hakkınız kalmadı.');
+    }
   };
-
-  const showAlert = () => {
-    Alert.alert(
-      'Fal baktırmaya hazır mısın?',
-      'Lütfen fincanını ve fincan tabağını hazır konuma getir.',
-      [
-        {
-          text: 'İptal',
-          onPress: () => console.log('İptal pressed'),
-          style: 'cancel',
-        },
-        {
-          text: 'Devam Et',
-          onPress: () => {
-            console.log('Devam Et pressed');
-            navigation.navigate('CoffeeCupUploadScreen', {userData});
-          },
-        },
-      ],
-      {cancelable: false},
-    );
-  };
-
-  const deleteFortune = index => {
-    const updatedFortunes = savedFortunes.filter((_, i) => i !== index);
-    setSavedFortunes(updatedFortunes);
-  };
-
-  const handleDeleteConfirmation = index => {
-    Alert.alert(
-      'Silmek istediğinize emin misiniz?',
-      '',
-      [
-        {
-          text: 'Hayır',
-          onPress: () => console.log('Silme işlemi iptal edildi'),
-          style: 'cancel',
-        },
-        {
-          text: 'Evet',
-          onPress: () => deleteFortune(index),
-        },
-      ],
-      {cancelable: true},
-    );
-  };
-
-  const renderRightActions = index => (
-    <TouchableOpacity
-      style={styles.deleteButton}
-      onPress={() => handleDeleteConfirmation(index)}>
-      <Image source={closeIcon} style={styles.closeIcon} />
-    </TouchableOpacity>
-  );
-
-  const renderFortuneItem = (item, index) => (
-    <Swipeable renderRightActions={() => renderRightActions(index)} key={index}>
-      <TouchableOpacity
-        style={styles.fortuneItem}
-        onPress={() =>
-          navigation.navigate('FortuneTellerViewScreen', {
-            fortuneText: item,
-            userData,
-            updateSavedFortunes: setSavedFortunes,
-          })
-        }>
-        <Text style={styles.fortuneItemText}>Fal #{index + 1}</Text>
-        <Text style={styles.fortuneItemPreview}>
-          {item.substring(0, 60)}...
-        </Text>
-      </TouchableOpacity>
-    </Swipeable>
-  );
-
-  const Header = () => (
-    <Animated.View
-      style={[styles.header, {backgroundColor: headerBackgroundColor}]}>
-      <TouchableOpacity
-        style={styles.wheelButton}
-        onPress={() => console.log('Wheel of Prizes')}>
-        <Image source={wheelIcon} style={styles.wheelIcon} />
-      </TouchableOpacity>
-      <Animated.Text
-        style={[
-          styles.welcomeText,
-          {
-            fontSize: fontSize,
-            transform: [
-              {translateX: welcomePositionX},
-              {translateY: welcomePositionY},
-            ],
-            textAlign: 'center',
-            flex: 1,
-          },
-        ]}>
-        👋 Hoşgeldin {userData.name}!
-      </Animated.Text>
-      <TouchableOpacity
-        style={styles.notificationButton}
-        onPress={() => console.log('Notifications')}>
-        <Image source={notificationIcon} style={styles.notificationIcon} />
-      </TouchableOpacity>
-    </Animated.View>
-  );
-
-  const fontSize = scrollY.interpolate({
-    inputRange: [0, 100],
-    outputRange: [32, 24],
-    extrapolate: 'clamp',
-  });
-
-  const welcomePositionX = scrollY.interpolate({
-    inputRange: [0, 100],
-    outputRange: [-30, 0],
-    extrapolate: 'clamp',
-  });
-
-  const welcomePositionY = scrollY.interpolate({
-    inputRange: [0, 100],
-    outputRange: [30, -25],
-    extrapolate: 'clamp',
-  });
-
-  const headerBackgroundColor = scrollY.interpolate({
-    inputRange: [0, 100],
-    outputRange: ['transparent', '#ffffff'],
-    extrapolate: 'clamp',
-  });
 
   return (
     <LinearGradient colors={['#fff', '#f8d8c1']} style={styles.container}>
-      <Header />
-      <View style={styles.gridContainer}>
-        {services.map(service => (
-          <View key={service.key}>
-            <TouchableOpacity
-              style={styles.gridItem}
-              onPress={service.key === '1' ? handleKahveFaliBak : showAlert}>
-              <Image source={service.icon} style={styles.icon} />
-              <Text style={styles.gridText}>{service.title}</Text>
-            </TouchableOpacity>
+      <ScrollView
+        contentContainerStyle={styles.scrollViewContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }>
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.wheelButton}
+            onPress={() => console.log('Wheel of Prizes')}>
+            <Image source={wheelIcon} style={styles.wheelIcon} />
+          </TouchableOpacity>
+          <Animated.Text
+            style={[
+              styles.welcomeText,
+              {
+                fontSize: scrollY.interpolate({
+                  inputRange: [0, 100],
+                  outputRange: [32, 24],
+                  extrapolate: 'clamp',
+                }),
+              },
+            ]}>
+            👋 Hoşgeldin {userData?.name}!
+          </Animated.Text>
+          <TouchableOpacity
+            style={styles.coinsButton}
+            onPress={() => setCoinsModalVisible(true)}>
+            <Image source={coinsIcon} style={styles.coinsIcon} />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.gridContainer}>
+          {services.map(service => (
+            <View key={service.key}>
+              <TouchableOpacity
+                style={styles.gridItem}
+                onPress={service.key === '1' ? handleKahveFaliBak : () => {}}>
+                <Image source={service.icon} style={styles.icon} />
+                <Text style={styles.gridText}>{service.title}</Text>
+              </TouchableOpacity>
 
-            {isFortuneGridVisible && service.key === '1' && (
-              <View style={styles.fortuneGridContainer}>
-                {Array.isArray(savedFortunes) && savedFortunes.length > 0 ? (
-                  savedFortunes.map((fortune, index) =>
-                    renderFortuneItem(fortune, index),
-                  )
-                ) : (
-                  <View style={styles.noFortunesContainer}>
-                    <Text style={styles.noFortunesText}>
-                      Kayıtlı falınız bulunmamaktadır. Hemen +'ya basınız ve
-                      falınızı baktırınız.
-                    </Text>
-                  </View>
-                )}
-              </View>
-            )}
-          </View>
-        ))}
-      </View>
+              {isFortuneGridVisible && service.key === '1' && (
+                <View style={styles.fortuneGridContainer}>
+                  {Array.isArray(savedFortunes) && savedFortunes.length > 0 ? (
+                    savedFortunes.map((fortune, index) => (
+                      <Swipeable
+                        renderRightActions={() => renderRightActions(index)}
+                        key={index}>
+                        <TouchableOpacity
+                          style={styles.fortuneItem}
+                          onPress={() =>
+                            navigation.navigate('FortuneTellerViewScreen', {
+                              fortuneText: fortune,
+                              userData,
+                              updateSavedFortunes: setSavedFortunes,
+                            })
+                          }>
+                          <Text style={styles.fortuneItemText}>
+                            Fal #{index + 1}
+                          </Text>
+                          <Text style={styles.fortuneItemPreview}>
+                            {fortune.substring(0, 60)}...
+                          </Text>
+                        </TouchableOpacity>
+                      </Swipeable>
+                    ))
+                  ) : (
+                    <View style={styles.noFortunesContainer}>
+                      <Text style={styles.noFortunesText}>
+                        Kayıtlı falınız bulunmamaktadır. Hemen +'ya basınız ve
+                        falınızı baktırınız.
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              )}
+            </View>
+          ))}
+        </View>
+      </ScrollView>
       <View style={styles.navBar}>
         <TouchableOpacity
           style={styles.navItem}
@@ -238,16 +191,16 @@ const MainScreen = () => {
             style={styles.modalButton}
             onPress={() => {
               setModalVisible(false);
-              setSecondModalVisible(true); // Open the second modal
+              setSecondModalVisible(true);
             }}>
             <Image source={coffeeIcon} style={styles.modalIcon} />
             <Text style={styles.modalText}>Kahve falı baktır</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.modalButton} onPress={showAlert}>
+          <TouchableOpacity style={styles.modalButton} onPress={() => {}}>
             <Image source={horoscopeIcon} style={styles.modalIcon} />
             <Text style={styles.modalText}>Günlük Burçlar</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.modalButton} onPress={showAlert}>
+          <TouchableOpacity style={styles.modalButton} onPress={() => {}}>
             <Image source={constellationIcon} style={styles.modalIcon} />
             <Text style={styles.modalText}>Astroloji Haritası</Text>
           </TouchableOpacity>
@@ -264,7 +217,7 @@ const MainScreen = () => {
             style={styles.backButton}
             onPress={() => {
               setSecondModalVisible(false);
-              setModalVisible(true); // Reopen the first modal
+              setModalVisible(true);
             }}>
             <Image source={backIcon} style={styles.backIcon} />
           </TouchableOpacity>
@@ -281,6 +234,23 @@ const MainScreen = () => {
           </TouchableOpacity>
         </View>
       </Modal>
+
+      <Modal
+        isVisible={coinsModalVisible}
+        onSwipeComplete={() => setCoinsModalVisible(false)}
+        swipeDirection="down"
+        style={styles.modal}>
+        <View style={styles.modalContent}>
+          <TouchableOpacity
+            style={styles.closeButton2}
+            onPress={() => setCoinsModalVisible(false)}>
+            <Image source={closeIcon} style={styles.closeIcon2} />
+          </TouchableOpacity>
+          <Text style={styles.coinsModalText}>
+            Kalan fal hakkı: {userData?.REMAINING_COINS || 0} / 2
+          </Text>
+        </View>
+      </Modal>
     </LinearGradient>
   );
 };
@@ -288,8 +258,11 @@ const MainScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'flex-start', // Ensure everything is aligned at the top initially
+    justifyContent: 'flex-start',
     position: 'relative',
+  },
+  scrollViewContent: {
+    paddingBottom: 100, // Ensure there's space at the bottom for scrollable content
   },
   header: {
     height: 250,
@@ -315,35 +288,27 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
   },
-  notificationButton: {
+  coinsButton: {
     position: 'absolute',
     top: 50,
     right: 20,
     padding: 5,
   },
-  notificationIcon: {
+  coinsIcon: {
     width: 30,
     height: 30,
   },
   grid: {
     flex: 1,
     width: '100%',
-    alignItems: 'center',  // Center the grid items horizontally
-    justifyContent: 'flex-start',  // Start from the top under the welcome text
-    marginTop: 20,  // Adjust as needed to move the grids closer to the welcomeText
-  },
-  contentContainer: {
-    marginTop: 60,
-    justifyContent: 'center',
-    paddingHorizontal: 20,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    marginTop: 20,
   },
   fortuneGridContainer: {
     marginVertical: 20,
     marginRight: 20,
     marginLeft: 20,
-  },
-  fortuneGrid: {
-    padding: 10,
   },
   fortuneItem: {
     backgroundColor: '#fcf4e4',
@@ -422,8 +387,8 @@ const styles = StyleSheet.create({
     fontFamily: 'Nunito-Black',
     textAlign: 'center',
     marginTop: 50,
-    zIndex: 1,  // Ensure it's on top
-    position: 'relative',  // Position relative to avoid overlap issues
+    zIndex: 1,
+    position: 'relative',
   },
   navBar: {
     flexDirection: 'row',
@@ -433,7 +398,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     position: 'absolute',
     bottom: 20,
-    left: 25,
+    left: '5%',
     borderTopLeftRadius: 40,
     borderTopRightRadius: 40,
     borderBottomLeftRadius: 40,
@@ -480,6 +445,13 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     tintColor: '#fcf4e4',
+  },
+  coinsModalText: {
+    color: '#fcf4e4',
+    textAlign: 'center',
+    fontFamily: 'Nunito-Black',
+    fontSize: 24,
+    marginBottom: 20,
   },
   modalButton: {
     backgroundColor: '#fcf4e4',

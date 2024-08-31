@@ -7,13 +7,15 @@ import {
   Image,
   ScrollView,
   Alert,
-  ActivityIndicator, // Import ActivityIndicator
+  ActivityIndicator,
 } from 'react-native';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { useNavigation } from '@react-navigation/native';
+import firestore from '@react-native-firebase/firestore';
+import { useUser } from './UserContext';
 
 const CoffeeCupUploadScreen = ({ route }) => {
-  const { userData } = route.params;
+  const { userData, setUserData } = useUser();
   const navigation = useNavigation();
   const [images, setImages] = useState([null, null, null, null]);
   const [loading, setLoading] = useState(false);
@@ -66,13 +68,39 @@ const CoffeeCupUploadScreen = ({ route }) => {
 
   const allImagesUploaded = images.every((img) => img !== null);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    if (!allImagesUploaded) {
+      Alert.alert('Hata', 'Lütfen tüm resimleri yükleyin.');
+      return;
+    }
+
     setLoading(true);
-    console.log('Navigating to FortuneLoadingScreen with userData:', userData);
-    setTimeout(() => {
+
+    try {
+      const updatedCoins = userData?.REMAINING_COINS - 1;
+      const userId = userData?.userId;
+
+      if (userId) {
+        await firestore().collection('test-users').doc(userId).update({
+          REMAINING_COINS: updatedCoins,
+          LAST_POSTED_FORTUNE: new Date().toISOString(),
+        });
+
+        // Update user data locally
+        setUserData(prevState => ({
+          ...prevState,
+          REMAINING_COINS: updatedCoins,
+        }));
+
+        // Navigate to the loading screen
+        navigation.navigate('FortuneLoadingScreen', { images, userData });
+      }
+    } catch (error) {
+      Alert.alert('Hata', 'Fal gönderilemedi. Lütfen tekrar deneyin.');
+      console.error('Error sending fortune:', error);
+    } finally {
       setLoading(false);
-      navigation.navigate('FortuneLoadingScreen', { images, userData });
-    }, 1000); // Simulate loading for 1 second
+    }
   };
 
   return (
