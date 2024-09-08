@@ -9,7 +9,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
+import { ImagePickerResponse, launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { useNavigation } from '@react-navigation/native';
 import firestore from '@react-native-firebase/firestore';
 import { useUser } from './UserContext';
@@ -20,24 +20,26 @@ const CoffeeCupUploadScreen = ({ route }) => {
   const [images, setImages] = useState([null, null, null, null]);
   const [loading, setLoading] = useState(false);
 
-  const updateImageAtIndex = (imageUri, index) => {
+  const updateImageAtIndex = (imageUri: string, index: number) => {
     const updatedImages = [...images];
     updatedImages[index] = imageUri;
     setImages(updatedImages);
   };
 
-  const handleImagePickerResponse = (response, index) => {
+  const handleImagePickerResponse = (response: ImagePickerResponse, index: number) => {
     if (response.didCancel) {
       console.log('User cancelled image picker');
     } else if (response.errorCode) {
       console.log('ImagePicker Error:', response.errorMessage);
-    } else {
+    } else if (response.assets && response.assets.length > 0) {
       const source = response.assets[0].uri;
-      updateImageAtIndex(source, index);
+      if (source) {
+        updateImageAtIndex(source, index);
+      }
     }
   };
 
-  const showImagePickerOptions = (index) => {
+  const showImagePickerOptions = (index: number) => {
     const options = {
       mediaType: 'photo',
       includeBase64: false,
@@ -47,10 +49,10 @@ const CoffeeCupUploadScreen = ({ route }) => {
         'Upload Photo',
         'Choose an option',
         [
-          { text: 'Take Photo', onPress: () => takePhoto(index, options) },
+          { text: 'Take Photo', onPress: () => takePhoto(index) },
           {
             text: 'Choose from Gallery',
-            onPress: () => chooseFromGallery(index, options),
+            onPress: () => chooseFromGallery(index),
           },
           { text: 'Cancel', onPress: () => {}, style: 'cancel' },
         ],
@@ -58,11 +60,11 @@ const CoffeeCupUploadScreen = ({ route }) => {
     );
   };
 
-  const takePhoto = (index, options) => {
+  const takePhoto = (index: number, options: ImagePickerResponse) => {
     launchCamera(options, (response) => handleImagePickerResponse(response, index));
   };
 
-  const chooseFromGallery = (index, options) => {
+  const chooseFromGallery = (index: number, options: ImagePickerResponse) => {
     launchImageLibrary(options, (response) => handleImagePickerResponse(response, index));
   };
 
@@ -165,7 +167,7 @@ const CoffeeCupUploadScreen = ({ route }) => {
           <View style={styles.navBar2}>
             <TouchableOpacity
                 style={styles.navItem2}
-                onPress={() => navigation.navigate('Settings')}
+                onPress={() => navigation.navigate('Settings' as never)}
             >
               <Image source={require('./assets/gear.png')} style={styles.icon} />
             </TouchableOpacity>

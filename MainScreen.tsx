@@ -16,6 +16,7 @@ import {Swipeable} from 'react-native-gesture-handler';
 import Modal from 'react-native-modal';
 import {useUser} from './UserContext';
 import firestore from '@react-native-firebase/firestore';
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 
 const MainScreen = () => {
   const {userData, setUserData} = useUser();
@@ -25,6 +26,11 @@ const MainScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [secondModalVisible, setSecondModalVisible] = useState(false);
   const [coinsModalVisible, setCoinsModalVisible] = useState(false);
+  const [thirdModalVisible, setThirdModalVisible] = useState(false);
+  const [birthDate, setBirthDate] = useState(new Date());
+  const [birthTime, setBirthTime] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
   const navigation = useNavigation();
   const scrollY = useRef(new Animated.Value(0)).current;
 
@@ -42,7 +48,7 @@ const MainScreen = () => {
   const services = [
     {key: '1', title: 'Geçmiş Kahve Falları', icon: coffeeIcon},
     {key: '2', title: 'Geçmiş Günlük Burçlar', icon: horoscopeIcon},
-    {key: '3', title: 'Geçmiş Astroloji Haritası', icon: constellationIcon},
+    {key: '3', title: 'Geçmiş Astroloji Haritası', icon: constellationIcon, comingSoon: true},
   ];
 
   useEffect(() => {
@@ -78,6 +84,22 @@ const MainScreen = () => {
     }
   };
 
+  const handleDateChange = (event: Event, selectedDate: Date | undefined) => {
+    const currentDate = selectedDate || birthDate;
+    setShowDatePicker(false);
+    setBirthDate(currentDate);
+  };
+
+  const handleTimeChange = (event: Event, selectedTime: Date | undefined) => {
+    const currentTime = selectedTime || birthTime;
+    setShowTimePicker(false);
+    setBirthTime(currentTime);
+  };
+
+  function renderRightActions(index: number): React.ReactNode {
+    throw new Error('Function not implemented.');
+  }
+
   return (
     <LinearGradient colors={['#fff', '#f8d8c1']} style={styles.container}>
       <ScrollView
@@ -110,14 +132,21 @@ const MainScreen = () => {
             <Image source={coinsIcon} style={styles.coinsIcon} />
           </TouchableOpacity>
         </View>
-        <View style={styles.gridContainer}>
+        <View style={styles.container}>
           {services.map(service => (
             <View key={service.key}>
               <TouchableOpacity
-                style={styles.gridItem}
-                onPress={service.key === '1' ? handleKahveFaliBak : () => {}}>
+                style={[styles.gridItem, service.comingSoon && styles.comingSoonItem]}
+                onPress={service.key === '1' ? handleKahveFaliBak : () => {}}
+                disabled={service.comingSoon}>
                 <Image source={service.icon} style={styles.icon} />
                 <Text style={styles.gridText}>{service.title}</Text>
+                {service.comingSoon && (
+                  <View style={styles.blurOverlay}>
+                    <View style={styles.blurBackground} />
+                    <Text style={styles.comingSoonText}>Yakında!</Text>
+                  </View>
+                )}
               </TouchableOpacity>
 
               {isFortuneGridVisible && service.key === '1' && (
@@ -130,11 +159,11 @@ const MainScreen = () => {
                         <TouchableOpacity
                           style={styles.fortuneItem}
                           onPress={() =>
-                            navigation.navigate('FortuneTellerViewScreen', {
+                            navigation.navigate('FortuneTellerViewScreen' as never, {
                               fortuneText: fortune,
                               userData,
                               updateSavedFortunes: setSavedFortunes,
-                            })
+                            } as never)
                           }>
                           <Text style={styles.fortuneItemText}>
                             Fal #{index + 1}
@@ -172,7 +201,7 @@ const MainScreen = () => {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.navItem}
-          onPress={() => navigation.navigate('Settings')}>
+          onPress={() => navigation.navigate('Settings' as never)}>
           <Image source={gearIcon} style={styles.icon} />
         </TouchableOpacity>
       </View>
@@ -196,7 +225,12 @@ const MainScreen = () => {
             <Image source={coffeeIcon} style={styles.modalIcon} />
             <Text style={styles.modalText}>Kahve falı baktır</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.modalButton} onPress={() => {}}>
+          <TouchableOpacity 
+            style={styles.modalButton} 
+            onPress={() => {
+              setModalVisible(false);
+              setThirdModalVisible(true);
+            }}>
             <Image source={horoscopeIcon} style={styles.modalIcon} />
             <Text style={styles.modalText}>Günlük Burçlar</Text>
           </TouchableOpacity>
@@ -228,7 +262,7 @@ const MainScreen = () => {
             style={styles.secondModalButton}
             onPress={() => {
               setSecondModalVisible(false);
-              navigation.navigate('CoffeeCupUploadScreen', {userData});
+              navigation.navigate('CoffeeCupUploadScreen', { userData: userData });
             }}>
             <Text style={styles.modalText}>Devam Et</Text>
           </TouchableOpacity>
@@ -251,6 +285,67 @@ const MainScreen = () => {
           </Text>
         </View>
       </Modal>
+
+      <Modal
+        isVisible={thirdModalVisible}
+        onSwipeComplete={() => setThirdModalVisible(false)}
+        swipeDirection="down"
+        style={styles.modal}>
+        <View style={styles.modalContent}>
+          <TouchableOpacity
+            style={styles.closeButton2}
+            onPress={() => setThirdModalVisible(false)}>
+            <Image source={closeIcon} style={styles.closeIcon2} />
+          </TouchableOpacity>
+          <Text style={styles.thirdModalTitle}>Doğum Bilgileriniz</Text>
+          <TouchableOpacity
+            style={styles.dateTimeButton}
+            onPress={() => setShowDatePicker(true)}>
+            <Text style={styles.dateTimeButtonText}>
+              Doğum Tarihi: {birthDate.toLocaleDateString()}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.dateTimeButton}
+            onPress={() => setShowTimePicker(true)}>
+            <Text style={styles.dateTimeButtonText}>
+              Doğum Saati: {birthTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.expandedButton}
+            onPress={() => {
+              setThirdModalVisible(false);
+              // Navigate to daily horoscope screen or perform action
+              console.log('Navigate to daily horoscope');
+            }}>
+            <Image source={horoscopeIcon} style={styles.expandedButtonIcon} />
+            <Text style={styles.expandedButtonText}>Burç Yorumunu Gör</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+
+      {showDatePicker && (
+        <DateTimePicker
+          value={birthDate}
+          mode="date"
+          display="default"
+          onChange={(event: DateTimePickerEvent, selectedDate: Date | undefined) => {
+            handleDateChange(event, selectedDate);
+          }}
+        />
+      )}
+      {showTimePicker && (
+        <DateTimePicker
+          value={birthTime}
+          mode="time"
+          is24Hour={true}
+          display="default"
+          onChange={(event: DateTimePickerEvent, selectedTime: Date | undefined) => {
+            handleTimeChange(event, selectedTime);
+          }}
+        />
+      )}
     </LinearGradient>
   );
 };
@@ -370,6 +465,36 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+    overflow: 'hidden',
+  },
+  comingSoonItem: {
+    opacity: 0.7,
+  },
+  blurOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  blurBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+  },
+  comingSoonText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+    backgroundColor: 'rgba(138, 68, 18, 0.7)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 10,
   },
   gridText: {
     fontSize: 24,
@@ -500,6 +625,61 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 3,
     elevation: 5,
+  },
+  thirdModalTitle: {
+    color: '#fcf4e4',
+    textAlign: 'center',
+    fontFamily: 'Nunito-Black',
+    fontSize: 24,
+    marginBottom: 20,
+  },
+  dateTimeButton: {
+    backgroundColor: '#fcf4e4',
+    borderRadius: 30,
+    padding: 15,
+    elevation: 2,
+    width: 350,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5,
+  },
+  dateTimeButtonText: {
+    color: '#8a4412',
+    textAlign: 'center',
+    fontFamily: 'Nunito-Black',
+    fontSize: 18,
+  },
+  expandedButton: {
+    backgroundColor: '#fcf4e4',
+    borderRadius: 30,
+    padding: 15,
+    elevation: 2,
+    width: 350,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 20,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5,
+  },
+  expandedButtonIcon: {
+    width: 24,
+    height: 24,
+    marginRight: 10,
+  },
+  expandedButtonText: {
+    color: '#8a4412',
+    textAlign: 'center',
+    fontFamily: 'Nunito-Black',
+    fontSize: 24,
   },
 });
 
