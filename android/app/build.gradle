@@ -93,6 +93,9 @@ android {
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
+            manifestPlaceholders = [
+                CAMERA_PERMISSION_REMOVED: true
+            ]
         }
         release {
             // Caution! In production, you need to generate your own keystore file.
@@ -100,6 +103,9 @@ android {
             signingConfig signingConfigs.debug
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+            manifestPlaceholders = [
+                CAMERA_PERMISSION_REMOVED: true
+            ]
         }
     }
 }
@@ -116,6 +122,12 @@ dependencies {
         implementation jscFlavor
     }
 }
+
+// Apply native modules gradle file
+apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
+
+// Apply Google Services at the bottom
+apply plugin: 'com.google.gms.google-services'
 
 // Apply native modules gradle file
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
