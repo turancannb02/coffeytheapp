@@ -1,12 +1,13 @@
 import notifee, { AndroidImportance } from '@notifee/react-native';
 import { AppRegistry } from 'react-native';
+import firestore from '@react-native-firebase/firestore'; // Add Firestore import
 
 class NotificationService {
   constructor() {
     this.notificationInterval = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
     this.notificationContent = {
-      title: 'Default Title',
-      body: 'Default Body Text',
+      title: 'Varsayılan Başlık',
+      body: 'Varsayılan Mesaj Metni',
     };
   }
 
@@ -18,9 +19,25 @@ class NotificationService {
   async createChannel() {
     await notifee.createChannel({
       id: 'default',
-      name: 'Default Channel',
+      name: 'Varsayılan Kanal',
       importance: AndroidImportance.HIGH,
     });
+  }
+
+  async logNotificationToFirestore() {
+    const notificationData = {
+      title: this.notificationContent.title,
+      body: this.notificationContent.body,
+      timestamp: firestore.FieldValue.serverTimestamp(), // Store timestamp
+    };
+
+    // Add notification to Firestore
+    try {
+      await firestore().collection('notifications').add(notificationData);
+      console.log('Notification logged successfully');
+    } catch (error) {
+      console.error('Error logging notification:', error);
+    }
   }
 
   async displayNotification() {
@@ -31,12 +48,15 @@ class NotificationService {
         channelId: 'default',
       },
     });
+
+    // Log notification to Firestore
+    this.logNotificationToFirestore();
   }
 
   async start() {
     await this.createChannel();
     this.scheduleNotifications();
-    this.scheduleDailyNotification(); // Schedule the daily notification
+    this.scheduleDailyNotification(); // Günlük bildirimi planla
   }
 
   scheduleNotifications() {
@@ -63,16 +83,16 @@ class NotificationService {
 
     setTimeout(() => {
       this.setNotificationContent({
-        title: 'Falın Güncellendi!',
-        body: 'Fal haklarınız güncellendi! Hadi fal bakmaya başla hemen!',
+        title: '🔮 Falın Güncellendi!',
+        body: '☕ Fal haklarınız güncellendi! Hadi fal bakmaya başla hemen! 🚀',
       });
       this.displayNotification();
 
       // After the first notification, schedule it to repeat every 24 hours
       setInterval(() => {
         this.setNotificationContent({
-          title: 'Falın Güncellendi!',
-          body: 'Fal haklarınız güncellendi! Hadi fal bakmaya başla hemen!',
+          title: '🔮 Falın Güncellendi!',
+          body: '☕ Fal haklarınız güncellendi! Hadi fal bakmaya başla hemen! 🚀',
         });
         this.displayNotification();
       }, 24 * 60 * 60 * 1000); // 24 hours in milliseconds
@@ -81,20 +101,20 @@ class NotificationService {
 
   generateRandomTitle() {
     const titles = [
-      'New Fortune Awaits!',
-      'Your Coffee is Ready!',
-      'Don’t Miss Out on Your Fortune!',
-      'Time for a Coffee Break!',
+      '🌟 Yeni Bir Fal Seni Bekliyor!',
+      '☕ Kahven Hazır!',
+      '✨ Fırsatı Kaçırma! Falını Öğren!',
+      '☕ Bir Kahve Molası Zamanı!',
     ];
     return titles[Math.floor(Math.random() * titles.length)];
   }
 
   generateRandomBody() {
     const bodies = [
-      'Check out your new coffee reading!',
-      'Your fortune is ready to be revealed!',
-      'A surprise is waiting in your coffee cup!',
-      'Get your daily dose of fortune now!',
+      '🔮 Yeni fal yorumunu incele!',
+      '🌟 Falın hazır, hemen keşfet!',
+      '☕ Kahve fincanında bir sürpriz seni bekliyor!',
+      '✨ Günlük falını öğren ve güne başla!',
     ];
     return bodies[Math.floor(Math.random() * bodies.length)];
   }
