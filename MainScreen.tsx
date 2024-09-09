@@ -16,7 +16,10 @@ import {Swipeable} from 'react-native-gesture-handler';
 import Modal from 'react-native-modal';
 import {useUser} from './UserContext';
 import firestore from '@react-native-firebase/firestore';
-import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import DateTimePicker, {
+  DateTimePickerEvent,
+} from '@react-native-community/datetimepicker';
+import BannerAdComponent from './BannerAdComponent';
 
 const MainScreen = () => {
   const {userData, setUserData} = useUser();
@@ -48,7 +51,12 @@ const MainScreen = () => {
   const services = [
     {key: '1', title: 'Geçmiş Kahve Falları', icon: coffeeIcon},
     {key: '2', title: 'Geçmiş Günlük Burçlar', icon: horoscopeIcon},
-    {key: '3', title: 'Geçmiş Astroloji Haritası', icon: constellationIcon, comingSoon: true},
+    {
+      key: '3',
+      title: 'Geçmiş Astroloji Haritası',
+      icon: constellationIcon,
+      comingSoon: true,
+    },
   ];
 
   useEffect(() => {
@@ -136,7 +144,10 @@ const MainScreen = () => {
           {services.map(service => (
             <View key={service.key}>
               <TouchableOpacity
-                style={[styles.gridItem, service.comingSoon && styles.comingSoonItem]}
+                style={[
+                  styles.gridItem,
+                  service.comingSoon && styles.comingSoonItem,
+                ]}
                 onPress={service.key === '1' ? handleKahveFaliBak : () => {}}
                 disabled={service.comingSoon}>
                 <Image source={service.icon} style={styles.icon} />
@@ -159,11 +170,14 @@ const MainScreen = () => {
                         <TouchableOpacity
                           style={styles.fortuneItem}
                           onPress={() =>
-                            navigation.navigate('FortuneTellerViewScreen' as never, {
-                              fortuneText: fortune,
-                              userData,
-                              updateSavedFortunes: setSavedFortunes,
-                            } as never)
+                            navigation.navigate(
+                              'FortuneTellerViewScreen' as never,
+                              {
+                                fortuneText: fortune,
+                                userData,
+                                updateSavedFortunes: setSavedFortunes,
+                              } as never,
+                            )
                           }>
                           <Text style={styles.fortuneItemText}>
                             Fal #{index + 1}
@@ -225,8 +239,8 @@ const MainScreen = () => {
             <Image source={coffeeIcon} style={styles.modalIcon} />
             <Text style={styles.modalText}>Kahve falı baktır</Text>
           </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.modalButton} 
+          <TouchableOpacity
+            style={styles.modalButton}
             onPress={() => {
               setModalVisible(false);
               setThirdModalVisible(true);
@@ -262,7 +276,9 @@ const MainScreen = () => {
             style={styles.secondModalButton}
             onPress={() => {
               setSecondModalVisible(false);
-              navigation.navigate('CoffeeCupUploadScreen', { userData: userData });
+              navigation.navigate('CoffeeCupUploadScreen', {
+                userData: userData,
+              });
             }}>
             <Text style={styles.modalText}>Devam Et</Text>
           </TouchableOpacity>
@@ -309,7 +325,11 @@ const MainScreen = () => {
             style={styles.dateTimeButton}
             onPress={() => setShowTimePicker(true)}>
             <Text style={styles.dateTimeButtonText}>
-              Doğum Saati: {birthTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+              Doğum Saati:{' '}
+              {birthTime.toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -330,7 +350,10 @@ const MainScreen = () => {
           value={birthDate}
           mode="date"
           display="default"
-          onChange={(event: DateTimePickerEvent, selectedDate: Date | undefined) => {
+          onChange={(
+            event: DateTimePickerEvent,
+            selectedDate: Date | undefined,
+          ) => {
             handleDateChange(event, selectedDate);
           }}
         />
@@ -341,11 +364,18 @@ const MainScreen = () => {
           mode="time"
           is24Hour={true}
           display="default"
-          onChange={(event: DateTimePickerEvent, selectedTime: Date | undefined) => {
+          onChange={(
+            event: DateTimePickerEvent,
+            selectedTime: Date | undefined,
+          ) => {
             handleTimeChange(event, selectedTime);
           }}
         />
       )}
+      {/* Banner Ad Integration */}
+      <View style={styles.adContainer}>
+        <BannerAdComponent />
+      </View>
     </LinearGradient>
   );
 };
@@ -522,7 +552,7 @@ const styles = StyleSheet.create({
     width: '90%',
     paddingVertical: 15,
     position: 'absolute',
-    bottom: 20,
+    bottom: 70, // Moved it up by 70px
     left: '5%',
     borderTopLeftRadius: 40,
     borderTopRightRadius: 40,
@@ -680,6 +710,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontFamily: 'Nunito-Black',
     fontSize: 24,
+  },
+  adContainer: {
+    position: 'absolute',
+    bottom: 0, // Place the ad at the very bottom of the screen
+    width: '100%',
+    alignItems: 'center',
   },
 });
 
