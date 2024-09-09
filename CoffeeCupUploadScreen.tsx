@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,17 +8,23 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  Dimensions,
+  RefreshControl,
 } from 'react-native';
 import { ImagePickerResponse, launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { useNavigation } from '@react-navigation/native';
 import firestore from '@react-native-firebase/firestore';
 import { useUser } from './UserContext';
 
+const { width } = Dimensions.get('window');
+
 const CoffeeCupUploadScreen = ({ route }) => {
   const { userData, setUserData } = useUser();
   const navigation = useNavigation();
   const [images, setImages] = useState([null, null, null, null]);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [startX, setStartX] = useState(0);
 
   const updateImageAtIndex = (imageUri: string, index: number) => {
     const updatedImages = [...images];
@@ -105,12 +111,53 @@ const CoffeeCupUploadScreen = ({ route }) => {
     }
   };
 
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    // Implement your refresh logic here
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1000);
+  }, []);
+
+  const handleTouchStart = (e) => {
+    setStartX(e.nativeEvent.pageX);
+  };
+
+  const handleTouchEnd = (e) => {
+    const endX = e.nativeEvent.pageX;
+    const dx = endX - startX;
+    if (dx > 50) {
+      navigation.goBack();
+    } else if (dx < -50) {
+      navigation.navigate('Settings' as never);
+    }
+  };
+
   return (
-      <View style={styles.flexContainer}>
-        <ScrollView style={styles.container}>
-          <View style={styles.headerContainer}>
-            <Text style={styles.header}>Kahve Fincanınızı Yükleyin</Text>
+      <View 
+        style={styles.flexContainer}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
+        <View style={styles.headerContainer}>
+          <View style={styles.wavyBackground} />
+          <Text style={styles.header}>Kahve Fincanınızı Yükleyin</Text>
+        </View>
+        <ScrollView 
+          style={styles.container}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+        >
+          <View style={styles.infoBox}>
+            <Image 
+              source={require('./assets/info.png')} // Make sure this path is correct
+              style={styles.infoIcon} 
+            />
+            <Text style={styles.infoText}>
+            Kahve falınızı falcıya göndermek için fincanın içinden 3 farklı açıdan ve 1 tane de tabağından fotoğraf ekleyin.            </Text>
           </View>
+
           <Text style={styles.title}>Kahve Fincanı</Text>
           <Text style={styles.subTitle}>Kahve fincanınızın fotoğraflarını yükleyiniz.</Text>
           <View style={styles.imageContainer}>
@@ -184,32 +231,75 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   container: {
-    paddingTop: 50,
+    paddingTop: 10,
     paddingHorizontal: 30,
     backgroundColor: '#fcf4e4',
   },
   headerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    height: 200,
     justifyContent: 'center',
-    marginBottom: 30,
-    position: 'relative',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  wavyBackground: {
+    position: 'absolute',
+    top: -110,
+    left: 105,
+    right: 105,
+    height: 300,
+    backgroundColor: '#88400d',
+    borderBottomLeftRadius: width * 0.5,
+    borderBottomRightRadius: width * 0.5,
+    transform: [{ scaleX: 1.9 }],
   },
   header: {
     fontSize: 36,
-    color: '#88400d',
+    color: '#fcf4e4',
     fontFamily: 'Nunito-Black',
     textAlign: 'center',
+    zIndex: 1,
+  },
+  infoBox: {
+    backgroundColor: '#f0f0f0',
+    padding: 15,
+    marginBottom: 20,
+    marginHorizontal: 20, // Added horizontal margin
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 15,
+    elevation: 3,
+    marginHorizontal: 2,
+  },
+  infoIcon: {
+    width: 20,
+    height: 20,
+    marginRight: 10,
+    marginTop: 2,
+  },
+  infoText: {
+    flex: 1,
+    color: '#666',
+    fontSize: 12,
+    lineHeight: 20,
+    fontFamily: 'Nunito-Regular',
   },
   title: {
     fontSize: 24,
     color: '#88400d',
     marginBottom: 5,
+    marginTop: 10, // Added top margin
     textAlign: 'left',
     fontFamily: 'Nunito-Black',
   },
   subTitle: {
-    fontSize: 18,
+    fontSize: 14,
     color: 'gray',
     marginBottom: 10,
     textAlign: 'left',
@@ -235,7 +325,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 3,
-    elevation: 5,
+    elevation: 2,
   },
   image: {
     width: '100%',
@@ -255,7 +345,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.6,
     shadowRadius: 3,
-    elevation: 5,
+    elevation: 2,
     marginHorizontal: 20,
   },
   buttonText: {

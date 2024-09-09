@@ -18,13 +18,20 @@ const Stack = createStackNavigator();
 const App = () => {
   useEffect(() => {
     notificationService.start();
-      mobileAds()
-          .initialize()
-          .then(adapterStatuses => {
-              console.log('AdMob initialized', adapterStatuses);
+    mobileAds()
+      .initialize()
+      .then(() => {
+        console.log('AdMob initialized');
+        // Set the emulator as a test device
+        mobileAds()
+          .setRequestConfiguration({
+            testDeviceIdentifiers: ['Pixel_8_Pro_API_35'], // Android emulators are automatically recognized as test devices
+          })
+          .then(() => {
+            console.log('Request configuration set successfully');
           });
+      });
   }, []);
-
 
   return (
     <UserProvider>

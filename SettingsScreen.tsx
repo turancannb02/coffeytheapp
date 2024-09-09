@@ -302,10 +302,15 @@ const styles = StyleSheet.create({
     padding: 12,
     alignItems: 'center',
     marginTop: 20,
+    // Add shadow properties
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
     shadowOpacity: 0.3,
-    shadowRadius: 3,
+    shadowRadius: 4.65,
+    elevation: 8, // for Android
   },
   updateButtonText: {
     fontSize: 24,
@@ -355,10 +360,15 @@ const styles = StyleSheet.create({
     padding: 12,
     alignItems: 'center',
     marginTop: 20,
+    // Add shadow properties
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
     shadowOpacity: 0.3,
-    shadowRadius: 3,
+    shadowRadius: 4.65,
+    elevation: 8, // for Android
   },
 });
 

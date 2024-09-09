@@ -50,7 +50,7 @@ const MainScreen = () => {
 
   const services = [
     {key: '1', title: 'Geçmiş Kahve Falları', icon: coffeeIcon},
-    {key: '2', title: 'Geçmiş Günlük Burçlar', icon: horoscopeIcon},
+    {key: '2', title: 'Geçmiş Günlük Burçlar', icon: horoscopeIcon, comingSoon: true},
     {
       key: '3',
       title: 'Geçmiş Astroloji Haritası',
@@ -150,14 +150,14 @@ const MainScreen = () => {
                 ]}
                 onPress={service.key === '1' ? handleKahveFaliBak : () => {}}
                 disabled={service.comingSoon}>
-                <Image source={service.icon} style={styles.icon} />
-                <Text style={styles.gridText}>{service.title}</Text>
                 {service.comingSoon && (
                   <View style={styles.blurOverlay}>
                     <View style={styles.blurBackground} />
-                    <Text style={styles.comingSoonText}>Yakında!</Text>
+                    <Text style={styles.comingSoonText}>Çok Yakında</Text>
                   </View>
                 )}
+                <Image source={service.icon} style={styles.icon} />
+                <Text style={styles.gridText}>{service.title}</Text>
               </TouchableOpacity>
 
               {isFortuneGridVisible && service.key === '1' && (
@@ -240,15 +240,25 @@ const MainScreen = () => {
             <Text style={styles.modalText}>Kahve falı baktır</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={styles.modalButton}
+            style={[styles.modalButton, styles.comingSoonItem]}
             onPress={() => {
               setModalVisible(false);
               setThirdModalVisible(true);
             }}>
+            <View style={styles.blurOverlay}>
+              <View style={styles.blurBackground} />
+              <Text style={styles.comingSoonText}>Çok Yakında</Text>
+            </View>
             <Image source={horoscopeIcon} style={styles.modalIcon} />
             <Text style={styles.modalText}>Günlük Burçlar</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.modalButton} onPress={() => {}}>
+          <TouchableOpacity
+            style={[styles.modalButton, styles.comingSoonItem]}
+            onPress={() => {}}>
+            <View style={styles.blurOverlay}>
+              <View style={styles.blurBackground} />
+              <Text style={styles.comingSoonText}>Çok Yakında</Text>
+            </View>
             <Image source={constellationIcon} style={styles.modalIcon} />
             <Text style={styles.modalText}>Astroloji Haritası</Text>
           </TouchableOpacity>
@@ -302,76 +312,79 @@ const MainScreen = () => {
         </View>
       </Modal>
 
-      <Modal
-        isVisible={thirdModalVisible}
-        onSwipeComplete={() => setThirdModalVisible(false)}
-        swipeDirection="down"
-        style={styles.modal}>
-        <View style={styles.modalContent}>
-          <TouchableOpacity
-            style={styles.closeButton2}
-            onPress={() => setThirdModalVisible(false)}>
-            <Image source={closeIcon} style={styles.closeIcon2} />
-          </TouchableOpacity>
-          <Text style={styles.thirdModalTitle}>Doğum Bilgileriniz</Text>
-          <TouchableOpacity
-            style={styles.dateTimeButton}
-            onPress={() => setShowDatePicker(true)}>
-            <Text style={styles.dateTimeButtonText}>
-              Doğum Tarihi: {birthDate.toLocaleDateString()}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.dateTimeButton}
-            onPress={() => setShowTimePicker(true)}>
-            <Text style={styles.dateTimeButtonText}>
-              Doğum Saati:{' '}
-              {birthTime.toLocaleTimeString([], {
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.expandedButton}
-            onPress={() => {
-              setThirdModalVisible(false);
-              // Navigate to daily horoscope screen or perform action
-              console.log('Navigate to daily horoscope');
-            }}>
-            <Image source={horoscopeIcon} style={styles.expandedButtonIcon} />
-            <Text style={styles.expandedButtonText}>Burç Yorumunu Gör</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
+      {/*
+        <Modal
+          isVisible={thirdModalVisible}
+          onSwipeComplete={() => setThirdModalVisible(false)}
+          swipeDirection="down"
+          style={styles.modal}>
+          <View style={styles.modalContent}>
+            <TouchableOpacity
+              style={styles.closeButton2}
+              onPress={() => setThirdModalVisible(false)}>
+              <Image source={closeIcon} style={styles.closeIcon2} />
+            </TouchableOpacity>
+            <Text style={styles.thirdModalTitle}>Doğum Bilgileriniz</Text>
+            <TouchableOpacity
+              style={styles.dateTimeButton}
+              onPress={() => setShowDatePicker(true)}>
+              <Text style={styles.dateTimeButtonText}>
+                Doğum Tarihi: {birthDate.toLocaleDateString()}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.dateTimeButton}
+              onPress={() => setShowTimePicker(true)}>
+              <Text style={styles.dateTimeButtonText}>
+                Doğum Saati:{' '}
+                {birthTime.toLocaleTimeString([], {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.expandedButton}
+              onPress={() => {
+                setThirdModalVisible(false);
+                // Navigate to daily horoscope screen or perform action
+                console.log('Navigate to daily horoscope');
+              }}>
+              <Image source={horoscopeIcon} style={styles.expandedButtonIcon} />
+              <Text style={styles.expandedButtonText}>Burç Yorumunu Gör</Text>
+            </TouchableOpacity>
+          </View>
+        </Modal>
 
-      {showDatePicker && (
-        <DateTimePicker
-          value={birthDate}
-          mode="date"
-          display="default"
-          onChange={(
-            event: DateTimePickerEvent,
-            selectedDate: Date | undefined,
-          ) => {
-            handleDateChange(event, selectedDate);
-          }}
-        />
-      )}
-      {showTimePicker && (
-        <DateTimePicker
-          value={birthTime}
-          mode="time"
-          is24Hour={true}
-          display="default"
-          onChange={(
-            event: DateTimePickerEvent,
-            selectedTime: Date | undefined,
-          ) => {
-            handleTimeChange(event, selectedTime);
-          }}
-        />
-      )}
+        {showDatePicker && (
+          <DateTimePicker
+            value={birthDate}
+            mode="date"
+            display="default"
+            onChange={(
+              event: DateTimePickerEvent,
+              selectedDate: Date | undefined,
+            ) => {
+              handleDateChange(event, selectedDate);
+            }}
+          />
+        )}
+        {showTimePicker && (
+          <DateTimePicker
+            value={birthTime}
+            mode="time"
+            is24Hour={true}
+            display="default"
+            onChange={(
+              event: DateTimePickerEvent,
+              selectedTime: Date | undefined,
+            ) => {
+              handleTimeChange(event, selectedTime);
+            }}
+          />
+        )}
+      */}
+      
       {/* Banner Ad Integration */}
       <View style={styles.adContainer}>
         <BannerAdComponent />
@@ -400,7 +413,7 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 3,
-    elevation: 5,
+    elevation: 2,
     zIndex: 1,
   },
   wheelButton: {
@@ -444,7 +457,7 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.2,
     shadowRadius: 3.84,
-    elevation: 3,
+    elevation: 2,
   },
   fortuneItemText: {
     fontSize: 18,
@@ -494,11 +507,11 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-    elevation: 5,
+    elevation: 2,
     overflow: 'hidden',
   },
   comingSoonItem: {
-    opacity: 0.7,
+    opacity: 0.75,
   },
   blurOverlay: {
     position: 'absolute',
@@ -508,6 +521,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 1,
   },
   blurBackground: {
     position: 'absolute',
@@ -515,16 +529,18 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    backgroundColor: 'rgba(255, 255, 255, 0.75)',
+    backdropFilter: 'blur(8px)',
   },
   comingSoonText: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
-    color: '#fff',
-    backgroundColor: 'rgba(138, 68, 18, 0.7)',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 10,
+    color: '#000000',
+    textAlign: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    padding: 8,
+    borderRadius: 15,
+    zIndex: 2,
   },
   gridText: {
     fontSize: 24,
@@ -552,7 +568,7 @@ const styles = StyleSheet.create({
     width: '90%',
     paddingVertical: 15,
     position: 'absolute',
-    bottom: 70, // Moved it up by 70px
+    bottom: 120, // Moved it up by 70px
     left: '5%',
     borderTopLeftRadius: 40,
     borderTopRightRadius: 40,
@@ -562,7 +578,7 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: -2},
     shadowOpacity: 0.2,
     shadowRadius: 3,
-    elevation: 10,
+    elevation: 2,
   },
   navItem: {
     alignItems: 'center',
@@ -621,8 +637,8 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 3,
-    elevation: 5,
     flexDirection: 'row',
+    overflow: 'hidden',
   },
   modalIcon: {
     width: 24,
@@ -654,7 +670,6 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 3,
-    elevation: 5,
   },
   thirdModalTitle: {
     color: '#fcf4e4',
@@ -676,7 +691,6 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 3,
-    elevation: 5,
   },
   dateTimeButtonText: {
     color: '#8a4412',
@@ -698,7 +712,6 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 3,
-    elevation: 5,
   },
   expandedButtonIcon: {
     width: 24,
