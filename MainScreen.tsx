@@ -49,8 +49,13 @@ const MainScreen = () => {
   const backIcon = require('./assets/back.png');
 
   const services = [
-    {key: '1', title: 'Geçmiş Kahve Falları', icon: coffeeIcon},
-    {key: '2', title: 'Geçmiş Günlük Burçlar', icon: horoscopeIcon, comingSoon: true},
+    { key: '1',
+      title: 'Geçmiş Kahve Falları',
+      icon: coffeeIcon},
+    {key: '2',
+      title: 'Geçmiş Günlük Burçlar',
+      icon: horoscopeIcon,
+      comingSoon: true},
     {
       key: '3',
       title: 'Geçmiş Astroloji Haritası',
@@ -86,11 +91,13 @@ const MainScreen = () => {
 
   const handleKahveFaliBak = () => {
     if (userData?.REMAINING_COINS > 0) {
-      setIsFortuneGridVisible(!isFortuneGridVisible);
+      navigation.navigate('CoffeeCupUploadScreen', {userData});
     } else {
-      Alert.alert('Kalan fal hakkınız kalmadı.');
+      Alert.alert('Fal hakkınız kalmamıştır.');
     }
   };
+
+  /* will use these part after adding the other grids -like active
 
   const handleDateChange = (event: Event, selectedDate: Date | undefined) => {
     const currentDate = selectedDate || birthDate;
@@ -103,7 +110,7 @@ const MainScreen = () => {
     setShowTimePicker(false);
     setBirthTime(currentTime);
   };
-
+*/
   function renderRightActions(index: number): React.ReactNode {
     throw new Error('Function not implemented.');
   }
@@ -284,12 +291,7 @@ const MainScreen = () => {
           </Text>
           <TouchableOpacity
             style={styles.secondModalButton}
-            onPress={() => {
-              setSecondModalVisible(false);
-              navigation.navigate('CoffeeCupUploadScreen', {
-                userData: userData,
-              });
-            }}>
+            onPress={handleKahveFaliBak}>
             <Text style={styles.modalText}>Devam Et</Text>
           </TouchableOpacity>
         </View>
@@ -311,7 +313,11 @@ const MainScreen = () => {
           </Text>
         </View>
       </Modal>
+      {/*
 
+      Topic for another time - maybe in v2.0 (?)
+
+      */}
       {/*
         <Modal
           isVisible={thirdModalVisible}
@@ -384,11 +390,17 @@ const MainScreen = () => {
           />
         )}
       */}
-      
-      {/* Banner Ad Integration */}
+
+      {/*
+
+Can't handle it. " ERROR  Test Banner ad failed to load: [Error: [googleMobileAds/error-code-no-fill] The ad request was successful, but no ad was returned due to lack of ad inventory.]"
+will handle it valla
+
+
+      Banner Ad Integration
       <View style={styles.adContainer}>
         <BannerAdComponent />
-      </View>
+      </View>*/}
     </LinearGradient>
   );
 };
@@ -400,7 +412,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   scrollViewContent: {
-    paddingBottom: 100, // Ensure there's space at the bottom for scrollable content
+    paddingBottom: 100,
   },
   header: {
     height: 250,
@@ -568,7 +580,7 @@ const styles = StyleSheet.create({
     width: '90%',
     paddingVertical: 15,
     position: 'absolute',
-    bottom: 120, // Moved it up by 70px
+    bottom: 50, // moved it up 70 to integrate admob - but not now
     left: '5%',
     borderTopLeftRadius: 40,
     borderTopRightRadius: 40,
@@ -724,12 +736,20 @@ const styles = StyleSheet.create({
     fontFamily: 'Nunito-Black',
     fontSize: 24,
   },
+
+  /*
+
+Will fix it and im not gonna delete it bc position was perfect
+
   adContainer: {
     position: 'absolute',
     bottom: 0, // Place the ad at the very bottom of the screen
     width: '100%',
     alignItems: 'center',
-  },
+  }
+
+  */
+
 });
 
 export default MainScreen;

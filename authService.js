@@ -27,13 +27,15 @@ export const signInAnonymously = async () => {
 
 export const saveUserData = async (userId, userData, deviceDetails) => {
   try {
-    const userNumber = await getNextUserNumber(); // Function to get the next incremental number
+    const userNumber = await getNextUserNumber();
 
     const userDocumentData = {
       ...userData,
       userId,
       userNumber,
       ...deviceDetails,
+      REMAINING_COINS: 2,  // Initialize with 2 daily coins
+      LAST_POSTED_FORTUNE: null,  // Initialize with no last fortune
     };
 
     // Save the user data to Firestore

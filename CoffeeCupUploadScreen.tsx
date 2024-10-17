@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, {useState, useCallback} from 'react';
 import {
   View,
   Text,
@@ -11,15 +11,19 @@ import {
   Dimensions,
   RefreshControl,
 } from 'react-native';
-import { ImagePickerResponse, launchCamera, launchImageLibrary } from 'react-native-image-picker';
-import { useNavigation } from '@react-navigation/native';
+import {
+  ImagePickerResponse,
+  launchCamera,
+  launchImageLibrary,
+} from 'react-native-image-picker';
+import {useNavigation} from '@react-navigation/native';
 import firestore from '@react-native-firebase/firestore';
-import { useUser } from './UserContext';
+import {useUser} from './UserContext';
 
-const { width } = Dimensions.get('window');
+const {width} = Dimensions.get('window');
 
-const CoffeeCupUploadScreen = ({ route }) => {
-  const { userData, setUserData } = useUser();
+const CoffeeCupUploadScreen = ({route}) => {
+  const {userData, setUserData} = useUser();
   const navigation = useNavigation();
   const [images, setImages] = useState([null, null, null, null]);
   const [loading, setLoading] = useState(false);
@@ -32,7 +36,10 @@ const CoffeeCupUploadScreen = ({ route }) => {
     setImages(updatedImages);
   };
 
-  const handleImagePickerResponse = (response: ImagePickerResponse, index: number) => {
+  const handleImagePickerResponse = (
+    response: ImagePickerResponse,
+    index: number,
+  ) => {
     if (response.didCancel) {
       console.log('User cancelled image picker');
     } else if (response.errorCode) {
@@ -46,35 +53,47 @@ const CoffeeCupUploadScreen = ({ route }) => {
   };
 
   const showImagePickerOptions = (index: number) => {
-    const options = {
-      mediaType: 'photo',
-      includeBase64: false,
-    };
-
-    Alert.alert(
-        'Upload Photo',
+    if (images[index]) {
+      // If an image is already selected, show options to change or remove
+      Alert.alert(
+        'Change Photo',
         'Choose an option',
         [
-          { text: 'Take Photo', onPress: () => takePhoto(index) },
-          {
-            text: 'Choose from Gallery',
-            onPress: () => chooseFromGallery(index),
-          },
-          { text: 'Cancel', onPress: () => {}, style: 'cancel' },
+          {text: 'Take New Photo', onPress: () => takePhoto(index)},
+          {text: 'Choose from Gallery', onPress: () => chooseFromGallery(index)},
+          {text: 'Remove Photo', onPress: () => removePhoto(index)},
+          {text: 'Cancel', style: 'cancel'},
         ],
-        { cancelable: true }
-    );
+        {cancelable: true},
+      );
+    } else {
+      // If no image is selected, show options to add
+      Alert.alert(
+        'Add Photo',
+        'Choose an option',
+        [
+          {text: 'Take Photo', onPress: () => takePhoto(index)},
+          {text: 'Choose from Gallery', onPress: () => chooseFromGallery(index)},
+          {text: 'Cancel', style: 'cancel'},
+        ],
+        {cancelable: true},
+      );
+    }
   };
 
   const takePhoto = (index: number, options: ImagePickerResponse) => {
-    launchCamera(options, (response) => handleImagePickerResponse(response, index));
+    launchCamera(options, response =>
+      handleImagePickerResponse(response, index),
+    );
   };
 
   const chooseFromGallery = (index: number, options: ImagePickerResponse) => {
-    launchImageLibrary(options, (response) => handleImagePickerResponse(response, index));
+    launchImageLibrary(options, response =>
+      handleImagePickerResponse(response, index),
+    );
   };
 
-  const allImagesUploaded = images.every((img) => img !== null);
+  const allImagesUploaded = images.every(img => img !== null);
 
   const handleSubmit = async () => {
     if (!allImagesUploaded) {
@@ -101,7 +120,7 @@ const CoffeeCupUploadScreen = ({ route }) => {
         }));
 
         // Navigate to the loading screen
-        navigation.navigate('FortuneLoadingScreen', { images, userData });
+        navigation.navigate('FortuneLoadingScreen', {images, userData});
       }
     } catch (error) {
       Alert.alert('Hata', 'Fal gönderilemedi. Lütfen tekrar deneyin.');
@@ -113,17 +132,17 @@ const CoffeeCupUploadScreen = ({ route }) => {
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    // Implement your refresh logic here
+    // Swipe down to refresh
     setTimeout(() => {
       setRefreshing(false);
     }, 1000);
   }, []);
 
-  const handleTouchStart = (e) => {
+  const handleTouchStart = e => {
     setStartX(e.nativeEvent.pageX);
   };
 
-  const handleTouchEnd = (e) => {
+  const handleTouchEnd = e => {
     const endX = e.nativeEvent.pageX;
     const dx = endX - startX;
     if (dx > 50) {
@@ -133,94 +152,99 @@ const CoffeeCupUploadScreen = ({ route }) => {
     }
   };
 
-  return (
-      <View 
-        style={styles.flexContainer}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-      >
-        <View style={styles.headerContainer}>
-          <View style={styles.wavyBackground} />
-          <Text style={styles.header}>Kahve Fincanınızı Yükleyin</Text>
-        </View>
-        <ScrollView 
-          style={styles.container}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-        >
-          <View style={styles.infoBox}>
-            <Image 
-              source={require('./assets/info.png')} // Make sure this path is correct
-              style={styles.infoIcon} 
-            />
-            <Text style={styles.infoText}>
-            Kahve falınızı falcıya göndermek için fincanın içinden 3 farklı açıdan ve 1 tane de tabağından fotoğraf ekleyin.            </Text>
-          </View>
+  const removePhoto = (index: number) => {
+    const updatedImages = [...images];
+    updatedImages[index] = null;
+    setImages(updatedImages);
+  };
 
-          <Text style={styles.title}>Kahve Fincanı</Text>
-          <Text style={styles.subTitle}>Kahve fincanınızın fotoğraflarını yükleyiniz.</Text>
-          <View style={styles.imageContainer}>
-            {images.slice(0, 3).map((img, index) => (
-                <TouchableOpacity
-                    key={index}
-                    style={styles.imageBox}
-                    onPress={() => showImagePickerOptions(index)}
-                >
-                  {img ? (
-                      <Image source={{ uri: img }} style={styles.image} />
-                  ) : (
-                      <Text style={styles.addIcon}>+</Text>
-                  )}
-                </TouchableOpacity>
-            ))}
-          </View>
-          <Text style={styles.title}>Kahve Tabağı</Text>
-          <Text style={styles.subTitle}>Kahve tabağınızın fotoğrafını yükleyiniz.</Text>
-          <TouchableOpacity
+  return (
+    <View
+      style={styles.flexContainer}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}>
+      <View style={styles.headerContainer}>
+        <View style={styles.wavyBackground} />
+        <Text style={styles.header}>Kahve Fincanınızı Yükleyin</Text>
+      </View>
+      <ScrollView
+        style={styles.container}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }>
+        <View style={styles.infoBox}>
+          <Image
+            source={require('./assets/info.png')}
+            style={styles.infoIcon}
+          />
+          <Text style={styles.infoText}>
+            Kahve falınızı falcıya göndermek için fincanın içinden 3 farklı
+            açıdan ve 1 tane de tabağından fotoğraf ekleyin.{' '}
+          </Text>
+        </View>
+
+        <Text style={styles.title}>Kahve Fincanı</Text>
+        <Text style={styles.subTitle}>
+          Kahve fincanınızın fotoğraflarını yükleyiniz.
+        </Text>
+        <View style={styles.imageContainer}>
+          {images.slice(0, 3).map((img, index) => (
+            <TouchableOpacity
+              key={index}
               style={styles.imageBox}
-              onPress={() => showImagePickerOptions(3)}
-          >
-            {images[3] ? (
-                <Image source={{ uri: images[3] }} style={styles.image} />
-            ) : (
+              onPress={() => showImagePickerOptions(index)}>
+              {img ? (
+                <Image source={{uri: img}} style={styles.image} />
+              ) : (
                 <Text style={styles.addIcon}>+</Text>
-            )}
-          </TouchableOpacity>
-        </ScrollView>
-        <View>
+              )}
+            </TouchableOpacity>
+          ))}
+        </View>
+        <Text style={styles.title}>Kahve Tabağı</Text>
+        <Text style={styles.subTitle}>
+          Kahve tabağınızın fotoğrafını yükleyiniz.
+        </Text>
+        <TouchableOpacity
+          style={styles.imageBox}
+          onPress={() => showImagePickerOptions(3)}>
+          {images[3] ? (
+            <Image source={{uri: images[3]}} style={styles.image} />
+          ) : (
+            <Text style={styles.addIcon}>+</Text>
+          )}
+        </TouchableOpacity>
+      </ScrollView>
+      <View>
+        <TouchableOpacity
+          style={[
+            styles.button,
+            allImagesUploaded ? styles.buttonActive : styles.buttonInactive,
+          ]}
+          disabled={!allImagesUploaded || loading}
+          onPress={handleSubmit}>
+          {loading ? (
+            <ActivityIndicator size="large" color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>Falcıya Gönder!</Text>
+          )}
+        </TouchableOpacity>
+        <View style={styles.navBar}>
           <TouchableOpacity
-              style={[
-                styles.button,
-                allImagesUploaded ? styles.buttonActive : styles.buttonInactive,
-              ]}
-              disabled={!allImagesUploaded || loading}
-              onPress={handleSubmit}
-          >
-            {loading ? (
-                <ActivityIndicator size="large" color="#fff" />
-            ) : (
-                <Text style={styles.buttonText}>Falcıya Gönder!</Text>
-            )}
+            style={styles.navItem}
+            onPress={() => navigation.goBack()}>
+            <Image source={require('./assets/home.png')} style={styles.icon} />
           </TouchableOpacity>
-          <View style={styles.navBar}>
-            <TouchableOpacity
-                style={styles.navItem}
-                onPress={() => navigation.goBack()}
-            >
-              <Image source={require('./assets/home.png')} style={styles.icon} />
-            </TouchableOpacity>
-          </View>
-          <View style={styles.navBar2}>
-            <TouchableOpacity
-                style={styles.navItem2}
-                onPress={() => navigation.navigate('Settings' as never)}
-            >
-              <Image source={require('./assets/gear.png')} style={styles.icon} />
-            </TouchableOpacity>
-          </View>
+        </View>
+        <View style={styles.navBar2}>
+          <TouchableOpacity
+            style={styles.navItem2}
+            onPress={() => navigation.navigate('Settings' as never)}>
+            <Image source={require('./assets/gear.png')} style={styles.icon} />
+          </TouchableOpacity>
         </View>
       </View>
+    </View>
   );
 };
 
@@ -231,8 +255,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   container: {
-    paddingTop: 10,
-    paddingHorizontal: 30,
+    paddingHorizontal: 20,
     backgroundColor: '#fcf4e4',
   },
   headerContainer: {
@@ -250,7 +273,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#88400d',
     borderBottomLeftRadius: width * 0.5,
     borderBottomRightRadius: width * 0.5,
-    transform: [{ scaleX: 1.9 }],
+    transform: [{scaleX: 1.9}],
   },
   header: {
     fontSize: 36,
@@ -263,7 +286,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
     padding: 15,
     marginBottom: 20,
-    marginHorizontal: 20, // Added horizontal margin
+    marginHorizontal: 20, // added horizon
     flexDirection: 'row',
     alignItems: 'flex-start',
     borderTopLeftRadius: 20,
@@ -271,7 +294,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
+    shadowOffset: {width: 0, height: -2},
     shadowOpacity: 0.3,
     shadowRadius: 15,
     elevation: 3,
@@ -294,7 +317,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: '#88400d',
     marginBottom: 5,
-    marginTop: 10, // Added top margin
+    marginTop: 10,
     textAlign: 'left',
     fontFamily: 'Nunito-Black',
   },
@@ -312,17 +335,17 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   imageBox: {
-    width: 110,
-    height: 110,
+    width: 70,
+    height: 70,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#eee',
     borderRadius: 20,
     marginBottom: 10,
-    marginVertical: 5,
-    marginHorizontal: 8,
+    marginVertical: 4,
+    marginHorizontal: 25,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 3,
     elevation: 2,
@@ -332,7 +355,7 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   addIcon: {
-    fontSize: 50,
+    fontSize: 40,
     color: 'gray',
   },
   button: {
@@ -342,7 +365,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fcf4e4',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
+    shadowOffset: {width: 0, height: -2},
     shadowOpacity: 0.6,
     shadowRadius: 3,
     elevation: 2,
@@ -365,8 +388,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgb(255,255,255)',
     width: '20%',
     paddingVertical: 15,
-    position: 'relative',
-    bottom: 30,
+    // position: 'relative',
+    bottom: 20,
     right: 60,
     alignSelf: 'center',
     borderTopLeftRadius: 40,
@@ -374,7 +397,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 40,
     borderBottomRightRadius: 40,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
+    shadowOffset: {width: 0, height: -2},
     shadowOpacity: 0.3,
     shadowRadius: 6,
     elevation: 15,
@@ -392,7 +415,7 @@ const styles = StyleSheet.create({
     width: '20%',
     paddingVertical: 15,
     position: 'relative',
-    bottom: 110,
+    bottom: 100,
     left: 60,
     alignSelf: 'center',
     borderTopLeftRadius: 40,
@@ -400,7 +423,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 40,
     borderBottomRightRadius: 40,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
+    shadowOffset: {width: 0, height: -2},
     shadowOpacity: 0.2,
     shadowRadius: 3,
     elevation: 15,

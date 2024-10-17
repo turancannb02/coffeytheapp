@@ -27,7 +27,7 @@ const FortuneLoadingScreen = ({ navigation, route }) => {
     try {
       console.log('User Data:', userData);
       const zodiacSign = getZodiacSign(new Date(userData.birthday));
-      const prompt = 'Görselleri bir falcı gibi yorumla. Kullanıcının adı ${userData.name}, yaşı ${userData.age}, cinsiyeti ${userData.gender}, ilgi alanı ${userData.sexualInterest}, ilişki durumu ${userData.status}, falın amacı ${userData.intention}, ve burcu ${zodiacSign}. Samimi bir dil kullan ve kullanıcıların duymak isteyeceği şeyleri belirt. Yorumlamayı profesyonel yap ve genel olarak giriş, gelişme ve sonuç paragraflarından oluşsun istiyorum.';
+      const prompt = `Görselleri bir falcı gibi yorumla. Kullanıcının adı ${userData.name}, yaşı ${userData.age}, cinsiyeti ${userData.gender}, ilgi alanı ${userData.sexualInterest}, ilişki durumu ${userData.status}, falın amacı ${userData.intention}, ve burcu ${zodiacSign}. Samimi bir dil kullan ve kullanıcıların duymak isteyeceği şeyleri belirt. Yorumlamayı profesyonel yap ve genel olarak giriş, gelişme ve sonuç paragraflarından oluşsun istiyorum.`;
 
       const responseText = await getFortuneText(prompt);
       if (responseText) {
@@ -87,7 +87,7 @@ const FortuneLoadingScreen = ({ navigation, route }) => {
                   fortuneReady ? styles.buttonActive : styles.buttonDisabled,
                 ]}
                 onPress={() =>
-                    navigation.navigate('FortuneTellerViewScreen', { fortuneText, userData })
+                    navigation.navigate('FortuneTellerViewScreen', { fortuneText, userData: {...userData, zodiacSign} })
                 }
                 disabled={!fortuneReady}
             >
@@ -106,10 +106,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#fcf4e4',
   },
   image: {
-    width: 300, // Adjust the width as needed
-    height: 300, // Adjust the height as needed
-    resizeMode: 'contain', // Keep the aspect ratio
-    marginBottom: 20, // Spacing between the image and the loading indicator
+    width: 300,
+    height: 300,
+    resizeMode: 'contain',
+    marginBottom: 20,
   },
   loadingText: {
     fontSize: 20,
@@ -149,3 +149,4 @@ const styles = StyleSheet.create({
 });
 
 export default FortuneLoadingScreen;
+

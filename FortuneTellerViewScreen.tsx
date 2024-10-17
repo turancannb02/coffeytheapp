@@ -15,6 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 const FortuneTellerViewScreen = ({ navigation, route }) => {
   const { fortuneText, userData, updateSavedFortunes } = route.params;
   const [savedFortunes, setSavedFortunes] = useState([]);
+  const [processedFortuneText, setProcessedFortuneText] = useState('');
 
   useEffect(() => {
     const loadSavedFortunes = async () => {
@@ -29,7 +30,23 @@ const FortuneTellerViewScreen = ({ navigation, route }) => {
     };
 
     loadSavedFortunes();
+    processFortuneText();
   }, []);
+
+  const processFortuneText = () => {
+    let processed = fortuneText;
+    // Remove markdown formatting
+    processed = processed.replace(/\*\*/g, '');
+    // Replace placeholders with actual user data
+    processed = processed.replace(/\${userData\.name}/g, userData.name);
+    processed = processed.replace(/\${userData\.age}/g, userData.age);
+    processed = processed.replace(/\${userData\.gender}/g, userData.gender);
+    processed = processed.replace(/\${userData\.status}/g, userData.status);
+    processed = processed.replace(/\${userData\.sexualInterest}/g, userData.sexualInterest);
+    processed = processed.replace(/\${userData\.intention}/g, userData.intention);
+    processed = processed.replace(/\${zodiacSign}/g, userData.zodiacSign);
+    setProcessedFortuneText(processed);
+  };
 
   const handleShare = async () => {
     try {
@@ -77,12 +94,12 @@ const FortuneTellerViewScreen = ({ navigation, route }) => {
           </View>
         </View>
         <View style={styles.fortuneContainer}>
-          <Text style={styles.fortuneText}>{fortuneText}</Text>
+          <Text style={styles.fortuneText}>{processedFortuneText}</Text>
         </View>
         <TouchableOpacity
             style={styles.button}
             onPress={() => navigation.navigate('Main', { userData })}>
-          <Text style={styles.buttonText}>Ana Menüye Dön</Text>
+          <Text style={styles.buttonText}>Ana Ekrana Dön</Text>
         </TouchableOpacity>
       </ScrollView>
   );
@@ -96,7 +113,7 @@ const styles = StyleSheet.create({
   },
   scrollViewContent: {
     flexGrow: 1,
-    justifyContent: 'space-between', // Ensures content is spread across the screen
+    justifyContent: 'space-between',
   },
   headerContainer: {
     flexDirection: 'row',

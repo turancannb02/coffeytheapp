@@ -1,79 +1,107 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# CoffeyTheApp (Fortune Teller App)
 
-# Getting Started
+**Coffey** is a mobile application built using React Native and Firebase services. The app is designed to provide an engaging user experience by integrating coffee-related features, user authentication, and interactive content such as fortune telling. Additionally, the app leverages Google AdMob for in-app advertisements.
 
->**Note**: Make sure you have completed the [React Native - Environment Setup](https://reactnative.dev/docs/environment-setup) instructions till "Creating a new application" step, before proceeding.
+## Features
 
-## Step 1: Start the Metro Server
+- **User Authentication:** Users can register and log in using Firebase Authentication.
+- **Coffee Cup Uploading:** Users can upload pictures of coffee cups, which are processed in-app for fortune telling.
+- **Fortune Telling:** An engaging feature where users can view their fortunes based on the coffee cups they upload. The fortunes are generated using OpenAI's **GPT-4 API**.
+- **Ad Integration (Ongoing):** The app will display banner and interstitial ads using Google AdMob. The integration is still in progress and will be completed in future updates.
+- **Responsive UI:** Built with React Native, the app supports both Android and iOS platforms.
+- **Push Notifications:** The app uses Firebase Cloud Messaging to deliver push notifications.
+- **Zodiac Utilization:** Provides additional features related to zodiac signs.
 
-First, you will need to start **Metro**, the JavaScript _bundler_ that ships _with_ React Native.
+## Screens
 
-To start Metro, run the following command from the _root_ of your React Native project:
+- **Login Screen:** Allows users to sign in or register.
+- **Main Screen:** Home screen with navigation to other key app features.
+- **Coffee Cup Upload Screen:** Users can upload a picture of their coffee cup to receive a fortune.
+- **Fortune Loading Screen:** Displays while the user's fortune is being generated.
+- **Fortune Teller View Screen:** Shows the generated fortune after analysis.
+- **Settings Screen:** Users can adjust their app settings, including notifications.
+- **Splash Screen:** A branded loading screen displayed when the app is launched.
 
-```bash
-# using npm
-npm start
+## Tech Stack
 
-# OR using Yarn
-yarn start
-```
+- **Frontend:** React Native with TypeScript
+- **Backend:** Firebase (Authentication, Firestore, Cloud Functions)
+- **Notifications:** Firebase Cloud Messaging (FCM)
+- **In-App Ads (Ongoing):** Google AdMob (still in progress)
+- **Fortune Generation:** OpenAI GPT-4 API
+- **State Management:** React Context API
+- **Build Tools:** Yarn, Babel, Metro bundler
 
-## Step 2: Start your Application
+## Installation
 
-Let Metro Bundler run in its _own_ terminal. Open a _new_ terminal from the _root_ of your React Native project. Run the following command to start your _Android_ or _iOS_ app:
+### Prerequisites
 
-### For Android
+- Node.js (>= 12.x)
+- Yarn (or npm)
+- Firebase CLI
+- Android Studio (for Android builds)
+- Xcode (for iOS builds)
 
-```bash
-# using npm
-npm run android
+### Steps
 
-# OR using Yarn
-yarn android
-```
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/turancannb02/coffeytheapp.git
+   cd coffeytheapp
+   
+2. Install dependencies:
 
-### For iOS
+   ```bash
+   yarn install
+   
+3. Set up Firebase:
 
-```bash
-# using npm
-npm run ios
+- Create a Firebase project and configure authentication and Firestore.
+- Replace the firebaseConfig.js file with your Firebase credentials.
+4. Run the application:
 
-# OR using Yarn
-yarn ios
-```
+- For Android:
 
-If everything is set up _correctly_, you should see your new app running in your _Android Emulator_ or _iOS Simulator_ shortly provided you have set up your emulator/simulator correctly.
+   ```bash
+   yarn android
+- For iOS:
 
-This is one way to run your app — you can also run it directly from within Android Studio and Xcode respectively.
+   ```bash
+   yarn ios
+## Running Tests
+This project uses Jest for unit testing. To run tests, execute the following command
 
-## Step 3: Modifying your App
 
-Now that you have successfully run the app, let's modify it.
+      yarn test
+   
+### Firebase Setup
+To use Firebase services (authentication, cloud storage, etc.), you must:
+- Install Firebase CLI:
 
-1. Open `App.tsx` in your text editor of choice and edit some lines.
-2. For **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Developer Menu** (<kbd>Ctrl</kbd> + <kbd>M</kbd> (on Window and Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (on macOS)) to see your changes!
+   ```bash
+   npm install -g firebase-tools
+- Login and initialize Firebase:
 
-   For **iOS**: Hit <kbd>Cmd ⌘</kbd> + <kbd>R</kbd> in your iOS Simulator to reload the app and see your changes!
+   ```bash
+   firebase login
+   firebase init
+- Deploy functions and other Firebase-related services as needed.
 
-## Congratulations! :tada:
+## AdMob Integration (Ongoing)
+To enable ads, configure your AdMob account and add the required ad unit IDs in the appropriate files:
 
-You've successfully run and modified your React Native App. :partying_face:
+- Banner ads: `BannerAdComponent.tsx`
+- Interstitial ads: `useInterstitialAd.tsx`
 
-### Now what?
+Note: The integration with Google AdMob is still in progress and will be completed in future updates.
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [Introduction to React Native](https://reactnative.dev/docs/getting-started).
+## Contribution Guidelines
+   - Fork the repository and create your feature branch. 
+   - Make your changes and test thoroughly. 
+   - Open a pull request with a description of your changes.
 
-# Troubleshooting
+## License
+This project is licensed under the MIT License.
 
-If you can't get this to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+## Security
+Please report any security concerns or vulnerabilities to the repository maintainers via email or GitHub issues.
