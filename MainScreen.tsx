@@ -20,6 +20,7 @@ import DateTimePicker, {
   DateTimePickerEvent,
 } from '@react-native-community/datetimepicker';
 import BannerAdComponent from './BannerAdComponent';
+import { useTranslation } from 'react-i18next';
 
 const MainScreen = () => {
   const {userData, setUserData} = useUser();
@@ -36,6 +37,7 @@ const MainScreen = () => {
   const [showTimePicker, setShowTimePicker] = useState(false);
   const navigation = useNavigation();
   const scrollY = useRef(new Animated.Value(0)).current;
+  const { t } = useTranslation();
 
   const homeIcon = require('./assets/home.png');
   const plusIcon = require('./assets/plus.png');
@@ -50,15 +52,15 @@ const MainScreen = () => {
 
   const services = [
     { key: '1',
-      title: 'Geçmiş Kahve Falları',
+      title: t('Geçmiş Kahve Falları'),
       icon: coffeeIcon},
     {key: '2',
-      title: 'Geçmiş Günlük Burçlar',
+      title: t('Geçmiş Günlük Burçlar'),
       icon: horoscopeIcon,
       comingSoon: true},
     {
       key: '3',
-      title: 'Geçmiş Astroloji Haritası',
+      title: t('Geçmiş Astroloji Haritası'),
       icon: constellationIcon,
       comingSoon: true,
     },
@@ -93,7 +95,7 @@ const MainScreen = () => {
     if (userData?.REMAINING_COINS > 0) {
       navigation.navigate('CoffeeCupUploadScreen', {userData});
     } else {
-      Alert.alert('Fal hakkınız kalmamıştır.');
+      Alert.alert(t('Fal hakkınız kalmamıştır.'));
     }
   };
 
@@ -139,7 +141,7 @@ const MainScreen = () => {
                 }),
               },
             ]}>
-            👋 Hoşgeldin {userData?.name}!
+            {t('👋 Hoşgeldin')} {userData?.name}
           </Animated.Text>
           <TouchableOpacity
             style={styles.coinsButton}
@@ -160,7 +162,7 @@ const MainScreen = () => {
                 {service.comingSoon && (
                   <View style={styles.blurOverlay}>
                     <View style={styles.blurBackground} />
-                    <Text style={styles.comingSoonText}>Çok Yakında</Text>
+                    <Text style={styles.comingSoonText}>{t('Çok Yakında')}</Text>
                   </View>
                 )}
                 <Image source={service.icon} style={styles.icon} />
@@ -187,7 +189,7 @@ const MainScreen = () => {
                             )
                           }>
                           <Text style={styles.fortuneItemText}>
-                            Fal #{index + 1}
+                            {t('Fal #')}{index + 1}
                           </Text>
                           <Text style={styles.fortuneItemPreview}>
                             {fortune.substring(0, 60)}...
@@ -198,8 +200,7 @@ const MainScreen = () => {
                   ) : (
                     <View style={styles.noFortunesContainer}>
                       <Text style={styles.noFortunesText}>
-                        Kayıtlı falınız bulunmamaktadır. Hemen +'ya basınız ve
-                        falınızı baktırınız.
+                        {t('Kayıtlı falınız bulunmamaktadır.')}
                       </Text>
                     </View>
                   )}
@@ -244,7 +245,7 @@ const MainScreen = () => {
               setSecondModalVisible(true);
             }}>
             <Image source={coffeeIcon} style={styles.modalIcon} />
-            <Text style={styles.modalText}>Kahve falı baktır</Text>
+            <Text style={styles.modalText}>{t('Kahve falı baktır')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.modalButton, styles.comingSoonItem]}
@@ -254,20 +255,20 @@ const MainScreen = () => {
             }}>
             <View style={styles.blurOverlay}>
               <View style={styles.blurBackground} />
-              <Text style={styles.comingSoonText}>Çok Yakında</Text>
+              <Text style={styles.comingSoonText}>{t('Çok Yakında')}</Text>
             </View>
             <Image source={horoscopeIcon} style={styles.modalIcon} />
-            <Text style={styles.modalText}>Günlük Burçlar</Text>
+            <Text style={styles.modalText}>{t('Günlük Burçlar')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.modalButton, styles.comingSoonItem]}
             onPress={() => {}}>
             <View style={styles.blurOverlay}>
               <View style={styles.blurBackground} />
-              <Text style={styles.comingSoonText}>Çok Yakında</Text>
+              <Text style={styles.comingSoonText}>{t('Çok Yakında')}</Text>
             </View>
             <Image source={constellationIcon} style={styles.modalIcon} />
-            <Text style={styles.modalText}>Astroloji Haritası</Text>
+            <Text style={styles.modalText}>{t('Astroloji Haritası')}</Text>
           </TouchableOpacity>
         </View>
       </Modal>
@@ -287,12 +288,12 @@ const MainScreen = () => {
             <Image source={backIcon} style={styles.backIcon} />
           </TouchableOpacity>
           <Text style={styles.secondModalText}>
-            Lütfen fincanınızı ve fincan tabağınızı hazır konuma getiriniz.
+            {t('Lütfen fincanınızı ve fincan tabağınızı hazır konuma getiriniz.')}
           </Text>
           <TouchableOpacity
             style={styles.secondModalButton}
             onPress={handleKahveFaliBak}>
-            <Text style={styles.modalText}>Devam Et</Text>
+            <Text style={styles.modalText}>{t('Devam Et')}</Text>
           </TouchableOpacity>
         </View>
       </Modal>
@@ -309,7 +310,7 @@ const MainScreen = () => {
             <Image source={closeIcon} style={styles.closeIcon2} />
           </TouchableOpacity>
           <Text style={styles.coinsModalText}>
-            Kalan fal hakkı: {userData?.REMAINING_COINS || 0} / 2
+            {t('Kalan Fal Hakkınız')}: {userData?.REMAINING_COINS}
           </Text>
         </View>
       </Modal>

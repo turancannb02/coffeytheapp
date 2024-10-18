@@ -19,6 +19,7 @@ import {
 import {useNavigation} from '@react-navigation/native';
 import firestore from '@react-native-firebase/firestore';
 import {useUser} from './UserContext';
+import {useTranslation} from 'react-i18next';
 
 const {width} = Dimensions.get('window');
 
@@ -29,6 +30,7 @@ const CoffeeCupUploadScreen = ({route}) => {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [startX, setStartX] = useState(0);
+  const { t } = useTranslation();
 
   const updateImageAtIndex = (imageUri: string, index: number) => {
     const updatedImages = [...images];
@@ -183,9 +185,9 @@ const CoffeeCupUploadScreen = ({route}) => {
           </Text>
         </View>
 
-        <Text style={styles.title}>Kahve Fincanı</Text>
+        <Text style={styles.title}>{t('Kahve Fincanı')}</Text>
         <Text style={styles.subTitle}>
-          Kahve fincanınızın fotoğraflarını yükleyiniz.
+          {t('Kahve fincanınızın fotoğraflarını yükleyiniz.')}
         </Text>
         <View style={styles.imageContainer}>
           {images.slice(0, 3).map((img, index) => (
@@ -201,9 +203,9 @@ const CoffeeCupUploadScreen = ({route}) => {
             </TouchableOpacity>
           ))}
         </View>
-        <Text style={styles.title}>Kahve Tabağı</Text>
+        <Text style={styles.title}>{t('Kahve Tabağı')}</Text>
         <Text style={styles.subTitle}>
-          Kahve tabağınızın fotoğrafını yükleyiniz.
+          {t('Kahve tabağınızın fotoğrafını yükleyiniz.')}
         </Text>
         <TouchableOpacity
           style={styles.imageBox}
@@ -226,7 +228,7 @@ const CoffeeCupUploadScreen = ({route}) => {
           {loading ? (
             <ActivityIndicator size="large" color="#fff" />
           ) : (
-            <Text style={styles.buttonText}>Falcıya Gönder!</Text>
+            <Text style={styles.buttonText}>{t('Falcıya Gönder!')}</Text>
           )}
         </TouchableOpacity>
         <View style={styles.navBar}>

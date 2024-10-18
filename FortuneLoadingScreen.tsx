@@ -10,6 +10,7 @@ import {
 import getFortuneText from './getFortuneText';
 import { getZodiacSign } from './zodiacUtils';
 import messaging from '@react-native-firebase/messaging';
+import { useTranslation } from 'react-i18next';
 
 const FortuneLoadingScreen = ({ navigation, route }) => {
   const { images, userData } = route.params;
@@ -17,6 +18,7 @@ const FortuneLoadingScreen = ({ navigation, route }) => {
   const [fortuneReady, setFortuneReady] = useState(false);
   const [fortuneText, setFortuneText] = useState('');
   const [fcmToken, setFcmToken] = useState('');
+  const { t } = useTranslation();
 
   useEffect(() => {
     console.log('FortuneLoadingScreen received userData:', userData);
@@ -27,7 +29,7 @@ const FortuneLoadingScreen = ({ navigation, route }) => {
     try {
       console.log('User Data:', userData);
       const zodiacSign = getZodiacSign(new Date(userData.birthday));
-      const prompt = `Görselleri bir falcı gibi yorumla. Kullanıcının adı ${userData.name}, yaşı ${userData.age}, cinsiyeti ${userData.gender}, ilgi alanı ${userData.sexualInterest}, ilişki durumu ${userData.status}, falın amacı ${userData.intention}, ve burcu ${zodiacSign}. Samimi bir dil kullan ve kullanıcıların duymak isteyeceği şeyleri belirt. Yorumlamayı profesyonel yap ve genel olarak giriş, gelişme ve sonuç paragraflarından oluşsun istiyorum.`;
+      const prompt = `Interpret the images like a fortune teller. The user's name is ${userData.name}, age ${userData.age}, gender ${userData.gender}, sexual interest ${userData.sexualInterest}, relationship status ${userData.status}, intention for the fortune ${userData.intention}, and zodiac sign ${zodiacSign}. Use a friendly tone and mention things the users would like to hear. Make the interpretation professional and generally consist of introduction, development, and conclusion paragraphs.`;
 
       const responseText = await getFortuneText(prompt);
       if (responseText) {
@@ -77,7 +79,7 @@ const FortuneLoadingScreen = ({ navigation, route }) => {
             <>
               <ActivityIndicator size="large" color="#88400d" />
               <Text style={styles.loadingText}>
-                Lütfen bekleyin, falınız hazırlanıyor... 🌟
+                {t('Lütfen bekleyin, falınız hazırlanıyor...')} 🌟
               </Text>
             </>
         ) : (
@@ -91,7 +93,7 @@ const FortuneLoadingScreen = ({ navigation, route }) => {
                 }
                 disabled={!fortuneReady}
             >
-              <Text style={styles.buttonText}>Falı Görüntüle! 🔮</Text>
+              <Text style={styles.buttonText}>{t('Falı Görüntüle!')} 🔮</Text>
             </TouchableOpacity>
         )}
       </View>
@@ -149,4 +151,3 @@ const styles = StyleSheet.create({
 });
 
 export default FortuneLoadingScreen;
-

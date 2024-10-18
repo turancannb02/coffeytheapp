@@ -11,13 +11,16 @@ import {
   Image,
   Linking,
   ActivityIndicator,
+  Picker,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import RNPickerSelect from 'react-native-picker-select';
-import {checkSignInStatus} from './authService'; // Ensure this path is correct
+import {checkSignInStatus} from './authService'; 
+import i18n from './i18n';
+import { useTranslation } from 'react-i18next';
 
 const SettingsScreen = () => {
   const navigation = useNavigation();
@@ -31,7 +34,9 @@ const SettingsScreen = () => {
     birthday: new Date(),
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [isAnonymous, setIsAnonymous] = useState(false); // Track if the user is anonymous
+  const [isAnonymous, setIsAnonymous] = useState(false); 
+  const [language, setLanguage] = useState('tr');
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -59,6 +64,18 @@ const SettingsScreen = () => {
     fetchUserData();
     checkUserStatus();
   }, []);
+
+  useEffect(() => {
+    AsyncStorage.getItem('language').then(lang => {
+      if (lang) setLanguage(lang);
+    });
+  }, []);
+
+  const handleLanguageChange = async (lang) => {
+    setLanguage(lang);
+    await AsyncStorage.setItem('language', lang);
+    i18n.changeLanguage(lang);
+  };
 
   const handleLogout = async () => {
     try {
@@ -144,7 +161,7 @@ const SettingsScreen = () => {
               style={styles.backIcon}
             />
           </TouchableOpacity>
-          <Text style={styles.header}>Ayarlar</Text>
+          <Text style={styles.header}>{t('Ayarlar')}</Text>
         </View>
 
         <Image
@@ -153,59 +170,71 @@ const SettingsScreen = () => {
         />
 
         <View style={styles.form}>
-          <Text style={styles.label}>İsim</Text>
+          <Text style={styles.label}>{t('İsim')}</Text>
           <TextInput
             style={styles.inputNonEditable}
             value={userDetails.name}
             editable={false}
           />
 
-          <Text style={styles.label}>Yaş</Text>
+          <Text style={styles.label}>{t('Yaş')}</Text>
           <TextInput
             style={styles.inputNonEditable}
             value={userDetails.age}
             editable={false}
           />
 
-          <Text style={styles.label}>Cinsiyet</Text>
+          <Text style={styles.label}>{t('Cinsiyet')}</Text>
           <RNPickerSelect
             style={pickerSelectStyles}
             onValueChange={value => handleChange('gender', value)}
             items={[
-              {label: 'Erkek', value: 'Erkek'},
-              {label: 'Kadın', value: 'Kadın'},
-              {label: 'Diğer', value: 'Diğer'},
+              {label: t('Erkek'), value: 'Erkek'},
+              {label: t('Kadın'), value: 'Kadın'},
+              {label: t('Diğer'), value: 'Diğer'},
             ]}
-            placeholder={{label: 'Cinsiyet Seçin', value: null}}
+            placeholder={{label: t('Cinsiyet Seçin'), value: null}}
             value={userDetails.gender}
           />
 
-          <Text style={styles.label}>İlişki Durumu</Text>
+          <Text style={styles.label}>{t('İlişki Durumu')}</Text>
           <RNPickerSelect
             style={pickerSelectStyles}
             onValueChange={value => handleChange('status', value)}
             items={[
-              {label: 'Bekar', value: 'Bekar'},
-              {label: 'Evli', value: 'Evli'},
-              {label: 'Nişanlı', value: 'Nişanlı'},
-              {label: 'Boşanmış', value: 'Boşanmış'},
-              {label: 'Karmaşık', value: 'Karmaşık'},
+              {label: t('Bekar'), value: 'Bekar'},
+              {label: t('Evli'), value: 'Evli'},
+              {label: t('Nişanlı'), value: 'Nişanlı'},
+              {label: t('Boşanmış'), value: 'Boşanmış'},
+              {label: t('Karmaşık'), value: 'Karmaşık'},
             ]}
-            placeholder={{label: 'İlişki Durumunuzu Seçin', value: null}}
+            placeholder={{label: t('İlişki Durumunuzu Seçin'), value: null}}
             value={userDetails.status}
           />
 
-          <Text style={styles.label}>İlgi Alanı</Text>
+          <Text style={styles.label}>{t('İlgi Alanı')}</Text>
           <RNPickerSelect
             style={pickerSelectStyles}
             onValueChange={value => handleChange('sexualInterest', value)}
             items={[
-              {label: 'Erkekler', value: 'Erkekler'},
-              {label: 'Kadınlar', value: 'Kadınlar'},
-              {label: 'Diğer', value: 'Diğer'},
+              {label: t('Erkekler'), value: 'Erkekler'},
+              {label: t('Kadınlar'), value: 'Kadınlar'},
+              {label: t('Diğer'), value: 'Diğer'},
             ]}
-            placeholder={{label: 'İlgi Alanınızı Seçin', value: null}}
+            placeholder={{label: t('İlgi Alanınızı Seçin'), value: null}}
             value={userDetails.sexualInterest}
+          />
+
+          <Text style={styles.label}>Dil / Language</Text>
+          <RNPickerSelect
+            style={pickerSelectStyles}
+            onValueChange={handleLanguageChange}
+            items={[
+              {label: 'Türkçe', value: 'tr'},
+              {label: 'English', value: 'en'},
+            ]}
+            placeholder={{label: 'Dil Seçin / Select Language', value: null}}
+            value={language}
           />
 
           <TouchableOpacity
@@ -234,11 +263,11 @@ const SettingsScreen = () => {
         </View>
 
         <Text style={styles.footerText}>
-          Sorunuz mu var? Lütfen{' '}
+          {t('Sorunuz mu var?')} {t('Lütfen')}{' '}
           <Text style={styles.emailLink} onPress={handleEmail}>
             xyz@gmail.com
           </Text>
-          'a mail yazınız.
+          {' '}{t("'a mail yazınız.")}
         </Text>
       </ScrollView>
     </SafeAreaView>

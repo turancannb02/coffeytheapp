@@ -11,11 +11,13 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 
 const FortuneTellerViewScreen = ({ navigation, route }) => {
   const { fortuneText, userData, updateSavedFortunes } = route.params;
   const [savedFortunes, setSavedFortunes] = useState([]);
   const [processedFortuneText, setProcessedFortuneText] = useState('');
+  const { t } = useTranslation();
 
   useEffect(() => {
     const loadSavedFortunes = async () => {
@@ -63,7 +65,7 @@ const FortuneTellerViewScreen = ({ navigation, route }) => {
         // dismissed
       }
     } catch (error) {
-      Alert.alert('Paylaşma hatası', error.message);
+      Alert.alert('Sharing error', error.message);
     }
   };
 
@@ -72,36 +74,36 @@ const FortuneTellerViewScreen = ({ navigation, route }) => {
       const updatedFortunes = [...savedFortunes, fortuneText];
       await AsyncStorage.setItem('savedFortunes', JSON.stringify(updatedFortunes));
       setSavedFortunes(updatedFortunes);
-      Alert.alert('Falınız kaydedildi!');
+      Alert.alert('Your fortune has been saved!');
     } catch (error) {
-      Alert.alert('Kayıt hatası', error.message);
+      Alert.alert('Saving error', error.message);
     }
   };
 
   return (
-      <ScrollView
-          style={styles.container}
-          contentContainerStyle={styles.scrollViewContent}>
-        <View style={styles.headerContainer}>
-          <Text style={styles.headerText}>Fal Yorumunuz</Text>
-          <View style={styles.iconContainer}>
-            <TouchableOpacity onPress={handleSave}>
-              <Image source={require('./assets/star.png')} style={styles.icon} />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={handleShare}>
-              <Image source={require('./assets/share.png')} style={styles.icon} />
-            </TouchableOpacity>
-          </View>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.scrollViewContent}>
+      <View style={styles.headerContainer}>
+        <Text style={styles.headerText}>Your Fortune</Text>
+        <View style={styles.iconContainer}>
+          <TouchableOpacity onPress={handleSave}>
+            <Image source={require('./assets/star.png')} style={styles.icon} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleShare}>
+            <Image source={require('./assets/share.png')} style={styles.icon} />
+          </TouchableOpacity>
         </View>
-        <View style={styles.fortuneContainer}>
-          <Text style={styles.fortuneText}>{processedFortuneText}</Text>
-        </View>
-        <TouchableOpacity
-            style={styles.button}
-            onPress={() => navigation.navigate('Main', { userData })}>
-          <Text style={styles.buttonText}>Ana Ekrana Dön</Text>
-        </TouchableOpacity>
-      </ScrollView>
+      </View>
+      <View style={styles.fortuneContainer}>
+        <Text style={styles.fortuneText}>{processedFortuneText}</Text>
+      </View>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.navigate('Main', { userData })}>
+        <Text style={styles.buttonText}>Return to Main Screen</Text>
+      </TouchableOpacity>
+    </ScrollView>
   );
 };
 
