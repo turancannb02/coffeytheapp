@@ -10,10 +10,14 @@ import {
   Alert,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 
 const FortuneTellerViewScreen = ({ navigation, route }) => {
-  const { fortuneText } = route.params;
+  const { fortuneText, userData, updateSavedFortunes } = route.params;
   const [savedFortunes, setSavedFortunes] = useState([]);
+  const [processedFortuneText, setProcessedFortuneText] = useState('');
+  const { t } = useTranslation();
 
   useEffect(() => {
     const loadSavedFortunes = async () => {
@@ -28,7 +32,23 @@ const FortuneTellerViewScreen = ({ navigation, route }) => {
     };
 
     loadSavedFortunes();
+    processFortuneText();
   }, []);
+
+  const processFortuneText = () => {
+    let processed = fortuneText;
+    // Remove markdown formatting
+    processed = processed.replace(/\*\*/g, '');
+    // Replace placeholders with actual user data
+    processed = processed.replace(/\${userData\.name}/g, userData.name);
+    processed = processed.replace(/\${userData\.age}/g, userData.age);
+    processed = processed.replace(/\${userData\.gender}/g, userData.gender);
+    processed = processed.replace(/\${userData\.status}/g, userData.status);
+    processed = processed.replace(/\${userData\.sexualInterest}/g, userData.sexualInterest);
+    processed = processed.replace(/\${userData\.intention}/g, userData.intention);
+    processed = processed.replace(/\${zodiacSign}/g, userData.zodiacSign);
+    setProcessedFortuneText(processed);
+  };
 
   const handleShare = async () => {
     try {
@@ -45,7 +65,7 @@ const FortuneTellerViewScreen = ({ navigation, route }) => {
         // dismissed
       }
     } catch (error) {
-      Alert.alert('Paylaşma hatası', error.message);
+      Alert.alert('Sharing error', error.message);
     }
   };
 
@@ -54,39 +74,38 @@ const FortuneTellerViewScreen = ({ navigation, route }) => {
       const updatedFortunes = [...savedFortunes, fortuneText];
       await AsyncStorage.setItem('savedFortunes', JSON.stringify(updatedFortunes));
       setSavedFortunes(updatedFortunes);
-      Alert.alert('Falınız kaydedildi!');
+      Alert.alert('Your fortune has been saved!');
     } catch (error) {
-      Alert.alert('Kayıt hatası', error.message);
+      Alert.alert('Saving error', error.message);
     }
   };
 
   return (
-      <ScrollView
-          style={styles.container}
-          contentContainerStyle={styles.scrollViewContent}>
-        <View style={styles.headerContainer}>
-          <Text style={styles.headerText}>Fal Yorumunuz</Text>
-          <View style={styles.iconContainer}>
-            <TouchableOpacity onPress={handleSave}>
-              <Image source={require('./assets/star.png')} style={styles.icon} />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={handleShare}>
-              <Image source={require('./assets/share.png')} style={styles.icon} />
-            </TouchableOpacity>
-          </View>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.scrollViewContent}>
+      <View style={styles.headerContainer}>
+        <Text style={styles.headerText}>Your Fortune</Text>
+        <View style={styles.iconContainer}>
+          <TouchableOpacity onPress={handleSave}>
+            <Image source={require('./assets/star.png')} style={styles.icon} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleShare}>
+            <Image source={require('./assets/share.png')} style={styles.icon} />
+          </TouchableOpacity>
         </View>
-        <View style={styles.fortuneContainer}>
-          <Text style={styles.fortuneText}>{fortuneText}</Text>
-        </View>
-        <TouchableOpacity
-            style={styles.button}
-            onPress={() => navigation.navigate('Main', { userData: route.params.userData })}>
-          <Text style={styles.buttonText}>Ana Menüye Dön</Text>
-        </TouchableOpacity>
-      </ScrollView>
+      </View>
+      <View style={styles.fortuneContainer}>
+        <Text style={styles.fortuneText}>{processedFortuneText}</Text>
+      </View>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.navigate('Main', { userData })}>
+        <Text style={styles.buttonText}>Return to Main Screen</Text>
+      </TouchableOpacity>
+    </ScrollView>
   );
 };
-
 
 const styles = StyleSheet.create({
   container: {
@@ -96,7 +115,7 @@ const styles = StyleSheet.create({
   },
   scrollViewContent: {
     flexGrow: 1,
-    justifyContent: 'space-between', // Ensures content is spread across the screen
+    justifyContent: 'space-between',
   },
   headerContainer: {
     flexDirection: 'row',
@@ -122,10 +141,10 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 20,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-    elevation: 5,
+    elevation: 2,
     marginBottom: 20,
     flex: 1,
   },
@@ -144,10 +163,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-    elevation: 5,
+    elevation: 2,
     width: '100%',
   },
   buttonText: {

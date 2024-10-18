@@ -1,35 +1,49 @@
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   Image,
-  ImageSourcePropType,
   Alert,
   Animated,
+  ScrollView,
+  RefreshControl,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import {Swipeable} from 'react-native-gesture-handler';
 import Modal from 'react-native-modal';
-import {useUser} from './UserContext'; // Import the useUser hook
+import {useUser} from './UserContext';
+import firestore from '@react-native-firebase/firestore';
+import DateTimePicker, {
+  DateTimePickerEvent,
+} from '@react-native-community/datetimepicker';
+import BannerAdComponent from './BannerAdComponent';
+import { useTranslation } from 'react-i18next';
 
 const MainScreen = () => {
-  const {userData} = useUser(); // Access user data from context
-
+  const {userData, setUserData} = useUser();
+  const [refreshing, setRefreshing] = useState(false);
   const [savedFortunes, setSavedFortunes] = useState([]);
   const [isFortuneGridVisible, setIsFortuneGridVisible] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [secondModalVisible, setSecondModalVisible] = useState(false);
+  const [coinsModalVisible, setCoinsModalVisible] = useState(false);
+  const [thirdModalVisible, setThirdModalVisible] = useState(false);
+  const [birthDate, setBirthDate] = useState(new Date());
+  const [birthTime, setBirthTime] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
   const navigation = useNavigation();
   const scrollY = useRef(new Animated.Value(0)).current;
+  const { t } = useTranslation();
 
   const homeIcon = require('./assets/home.png');
   const plusIcon = require('./assets/plus.png');
   const gearIcon = require('./assets/gear.png');
   const wheelIcon = require('./assets/wheel.png');
-  const notificationIcon = require('./assets/bell.png');
+  const coinsIcon = require('./assets/coins.png');
   const coffeeIcon = require('./assets/coffee.png');
   const horoscopeIcon = require('./assets/horoscope.png');
   const constellationIcon = require('./assets/constellation.png');
@@ -37,175 +51,165 @@ const MainScreen = () => {
   const backIcon = require('./assets/back.png');
 
   const services = [
-    {key: '1', title: 'Kahve falı baktır', icon: coffeeIcon},
-    {key: '2', title: 'Günlük Burçlar', icon: horoscopeIcon},
-    {key: '3', title: 'Astroloji Haritası', icon: constellationIcon},
+    { key: '1',
+      title: t('Geçmiş Kahve Falları'),
+      icon: coffeeIcon},
+    {key: '2',
+      title: t('Geçmiş Günlük Burçlar'),
+      icon: horoscopeIcon,
+      comingSoon: true},
+    {
+      key: '3',
+      title: t('Geçmiş Astroloji Haritası'),
+      icon: constellationIcon,
+      comingSoon: true,
+    },
   ];
 
+  useEffect(() => {
+    fetchUpdatedUserData();
+  }, []);
+
+  const fetchUpdatedUserData = async () => {
+    try {
+      const userId = userData?.userId;
+      if (userId) {
+        const userDoc = await firestore()
+          .collection('test-users')
+          .doc(userId)
+          .get();
+        setUserData(userDoc.data());
+      }
+    } catch (error) {
+      console.error('Error fetching updated user data:', error);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchUpdatedUserData();
+    setRefreshing(false);
+  };
+
   const handleKahveFaliBak = () => {
-    setIsFortuneGridVisible(!isFortuneGridVisible);
+    if (userData?.REMAINING_COINS > 0) {
+      navigation.navigate('CoffeeCupUploadScreen', {userData});
+    } else {
+      Alert.alert(t('Fal hakkınız kalmamıştır.'));
+    }
   };
 
-  const showAlert = () => {
-    Alert.alert(
-      'Fal baktırmaya hazır mısın?',
-      'Lütfen fincanını ve fincan tabağını hazır konuma getir.',
-      [
-        {
-          text: 'İptal',
-          onPress: () => console.log('İptal pressed'),
-          style: 'cancel',
-        },
-        {
-          text: 'Devam Et',
-          onPress: () => {
-            console.log('Devam Et pressed');
-            navigation.navigate('CoffeeCupUploadScreen', {userData});
-          },
-        },
-      ],
-      {cancelable: false},
-    );
+  /* will use these part after adding the other grids -like active
+
+  const handleDateChange = (event: Event, selectedDate: Date | undefined) => {
+    const currentDate = selectedDate || birthDate;
+    setShowDatePicker(false);
+    setBirthDate(currentDate);
   };
 
-  const deleteFortune = index => {
-    const updatedFortunes = savedFortunes.filter((_, i) => i !== index);
-    setSavedFortunes(updatedFortunes);
+  const handleTimeChange = (event: Event, selectedTime: Date | undefined) => {
+    const currentTime = selectedTime || birthTime;
+    setShowTimePicker(false);
+    setBirthTime(currentTime);
   };
-
-  const handleDeleteConfirmation = index => {
-    Alert.alert(
-      'Silmek istediğinize emin misiniz?',
-      '',
-      [
-        {
-          text: 'Hayır',
-          onPress: () => console.log('Silme işlemi iptal edildi'),
-          style: 'cancel',
-        },
-        {
-          text: 'Evet',
-          onPress: () => deleteFortune(index),
-        },
-      ],
-      {cancelable: true},
-    );
-  };
-
-  const renderRightActions = index => (
-    <TouchableOpacity
-      style={styles.deleteButton}
-      onPress={() => handleDeleteConfirmation(index)}>
-      <Image source={closeIcon} style={styles.closeIcon} />
-    </TouchableOpacity>
-  );
-
-  const renderFortuneItem = (item, index) => (
-    <Swipeable renderRightActions={() => renderRightActions(index)} key={index}>
-      <TouchableOpacity
-        style={styles.fortuneItem}
-        onPress={() =>
-          navigation.navigate('FortuneTellerViewScreen', {
-            fortuneText: item,
-            userData,
-            updateSavedFortunes: setSavedFortunes,
-          })
-        }>
-        <Text style={styles.fortuneItemText}>Fal #{index + 1}</Text>
-        <Text style={styles.fortuneItemPreview}>
-          {item.substring(0, 60)}...
-        </Text>
-      </TouchableOpacity>
-    </Swipeable>
-  );
-
-  const Header = () => (
-    <Animated.View
-      style={[styles.header, {backgroundColor: headerBackgroundColor}]}>
-      <TouchableOpacity
-        style={styles.wheelButton}
-        onPress={() => console.log('Wheel of Prizes')}>
-        <Image source={wheelIcon} style={styles.wheelIcon} />
-      </TouchableOpacity>
-      <Animated.Text
-        style={[
-          styles.welcomeText,
-          {
-            fontSize: fontSize,
-            transform: [
-              {translateX: welcomePositionX},
-              {translateY: welcomePositionY},
-            ],
-            textAlign: 'center',
-            flex: 1,
-          },
-        ]}>
-        👋 Hoşgeldin {userData.name}!
-      </Animated.Text>
-      <TouchableOpacity
-        style={styles.notificationButton}
-        onPress={() => console.log('Notifications')}>
-        <Image source={notificationIcon} style={styles.notificationIcon} />
-      </TouchableOpacity>
-    </Animated.View>
-  );
-
-  const fontSize = scrollY.interpolate({
-    inputRange: [0, 100],
-    outputRange: [32, 24],
-    extrapolate: 'clamp',
-  });
-
-  const welcomePositionX = scrollY.interpolate({
-    inputRange: [0, 100],
-    outputRange: [-30, 0],
-    extrapolate: 'clamp',
-  });
-
-  const welcomePositionY = scrollY.interpolate({
-    inputRange: [0, 100],
-    outputRange: [30, -25],
-    extrapolate: 'clamp',
-  });
-
-  const headerBackgroundColor = scrollY.interpolate({
-    inputRange: [0, 100],
-    outputRange: ['transparent', '#ffffff'],
-    extrapolate: 'clamp',
-  });
+*/
+  function renderRightActions(index: number): React.ReactNode {
+    throw new Error('Function not implemented.');
+  }
 
   return (
     <LinearGradient colors={['#fff', '#f8d8c1']} style={styles.container}>
-      <Header />
-      <View style={styles.gridContainer}>
-        {services.map(service => (
-          <View key={service.key}>
-            <TouchableOpacity
-              style={styles.gridItem}
-              onPress={service.key === '1' ? handleKahveFaliBak : showAlert}>
-              <Image source={service.icon} style={styles.icon} />
-              <Text style={styles.gridText}>{service.title}</Text>
-            </TouchableOpacity>
-
-            {isFortuneGridVisible && service.key === '1' && (
-              <View style={styles.fortuneGridContainer}>
-                {Array.isArray(savedFortunes) && savedFortunes.length > 0 ? (
-                  savedFortunes.map((fortune, index) =>
-                    renderFortuneItem(fortune, index),
-                  )
-                ) : (
-                  <View style={styles.noFortunesContainer}>
-                    <Text style={styles.noFortunesText}>
-                      Kayıtlı falınız bulunmamaktadır. Hemen +'ya basınız ve
-                      falınızı baktırınız.
-                    </Text>
+      <ScrollView
+        contentContainerStyle={styles.scrollViewContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }>
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.wheelButton}
+            onPress={() => console.log('Wheel of Prizes')}>
+            <Image source={wheelIcon} style={styles.wheelIcon} />
+          </TouchableOpacity>
+          <Animated.Text
+            style={[
+              styles.welcomeText,
+              {
+                fontSize: scrollY.interpolate({
+                  inputRange: [0, 100],
+                  outputRange: [32, 24],
+                  extrapolate: 'clamp',
+                }),
+              },
+            ]}>
+            {t('👋 Hoşgeldin')} {userData?.name}
+          </Animated.Text>
+          <TouchableOpacity
+            style={styles.coinsButton}
+            onPress={() => setCoinsModalVisible(true)}>
+            <Image source={coinsIcon} style={styles.coinsIcon} />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.container}>
+          {services.map(service => (
+            <View key={service.key}>
+              <TouchableOpacity
+                style={[
+                  styles.gridItem,
+                  service.comingSoon && styles.comingSoonItem,
+                ]}
+                onPress={service.key === '1' ? handleKahveFaliBak : () => {}}
+                disabled={service.comingSoon}>
+                {service.comingSoon && (
+                  <View style={styles.blurOverlay}>
+                    <View style={styles.blurBackground} />
+                    <Text style={styles.comingSoonText}>{t('Çok Yakında')}</Text>
                   </View>
                 )}
-              </View>
-            )}
-          </View>
-        ))}
-      </View>
+                <Image source={service.icon} style={styles.icon} />
+                <Text style={styles.gridText}>{service.title}</Text>
+              </TouchableOpacity>
+
+              {isFortuneGridVisible && service.key === '1' && (
+                <View style={styles.fortuneGridContainer}>
+                  {Array.isArray(savedFortunes) && savedFortunes.length > 0 ? (
+                    savedFortunes.map((fortune, index) => (
+                      <Swipeable
+                        renderRightActions={() => renderRightActions(index)}
+                        key={index}>
+                        <TouchableOpacity
+                          style={styles.fortuneItem}
+                          onPress={() =>
+                            navigation.navigate(
+                              'FortuneTellerViewScreen' as never,
+                              {
+                                fortuneText: fortune,
+                                userData,
+                                updateSavedFortunes: setSavedFortunes,
+                              } as never,
+                            )
+                          }>
+                          <Text style={styles.fortuneItemText}>
+                            {t('Fal #')}{index + 1}
+                          </Text>
+                          <Text style={styles.fortuneItemPreview}>
+                            {fortune.substring(0, 60)}...
+                          </Text>
+                        </TouchableOpacity>
+                      </Swipeable>
+                    ))
+                  ) : (
+                    <View style={styles.noFortunesContainer}>
+                      <Text style={styles.noFortunesText}>
+                        {t('Kayıtlı falınız bulunmamaktadır.')}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              )}
+            </View>
+          ))}
+        </View>
+      </ScrollView>
       <View style={styles.navBar}>
         <TouchableOpacity
           style={styles.navItem}
@@ -219,7 +223,7 @@ const MainScreen = () => {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.navItem}
-          onPress={() => navigation.navigate('Settings')}>
+          onPress={() => navigation.navigate('Settings' as never)}>
           <Image source={gearIcon} style={styles.icon} />
         </TouchableOpacity>
       </View>
@@ -238,18 +242,33 @@ const MainScreen = () => {
             style={styles.modalButton}
             onPress={() => {
               setModalVisible(false);
-              setSecondModalVisible(true); // Open the second modal
+              setSecondModalVisible(true);
             }}>
             <Image source={coffeeIcon} style={styles.modalIcon} />
-            <Text style={styles.modalText}>Kahve falı baktır</Text>
+            <Text style={styles.modalText}>{t('Kahve falı baktır')}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.modalButton} onPress={showAlert}>
+          <TouchableOpacity
+            style={[styles.modalButton, styles.comingSoonItem]}
+            onPress={() => {
+              setModalVisible(false);
+              setThirdModalVisible(true);
+            }}>
+            <View style={styles.blurOverlay}>
+              <View style={styles.blurBackground} />
+              <Text style={styles.comingSoonText}>{t('Çok Yakında')}</Text>
+            </View>
             <Image source={horoscopeIcon} style={styles.modalIcon} />
-            <Text style={styles.modalText}>Günlük Burçlar</Text>
+            <Text style={styles.modalText}>{t('Günlük Burçlar')}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.modalButton} onPress={showAlert}>
+          <TouchableOpacity
+            style={[styles.modalButton, styles.comingSoonItem]}
+            onPress={() => {}}>
+            <View style={styles.blurOverlay}>
+              <View style={styles.blurBackground} />
+              <Text style={styles.comingSoonText}>{t('Çok Yakında')}</Text>
+            </View>
             <Image source={constellationIcon} style={styles.modalIcon} />
-            <Text style={styles.modalText}>Astroloji Haritası</Text>
+            <Text style={styles.modalText}>{t('Astroloji Haritası')}</Text>
           </TouchableOpacity>
         </View>
       </Modal>
@@ -264,23 +283,125 @@ const MainScreen = () => {
             style={styles.backButton}
             onPress={() => {
               setSecondModalVisible(false);
-              setModalVisible(true); // Reopen the first modal
+              setModalVisible(true);
             }}>
             <Image source={backIcon} style={styles.backIcon} />
           </TouchableOpacity>
           <Text style={styles.secondModalText}>
-            Lütfen fincanınızı ve fincan tabağınızı hazır konuma getiriniz.
+            {t('Lütfen fincanınızı ve fincan tabağınızı hazır konuma getiriniz.')}
           </Text>
           <TouchableOpacity
             style={styles.secondModalButton}
-            onPress={() => {
-              setSecondModalVisible(false);
-              navigation.navigate('CoffeeCupUploadScreen', {userData});
-            }}>
-            <Text style={styles.modalText}>Devam Et</Text>
+            onPress={handleKahveFaliBak}>
+            <Text style={styles.modalText}>{t('Devam Et')}</Text>
           </TouchableOpacity>
         </View>
       </Modal>
+
+      <Modal
+        isVisible={coinsModalVisible}
+        onSwipeComplete={() => setCoinsModalVisible(false)}
+        swipeDirection="down"
+        style={styles.modal}>
+        <View style={styles.modalContent}>
+          <TouchableOpacity
+            style={styles.closeButton2}
+            onPress={() => setCoinsModalVisible(false)}>
+            <Image source={closeIcon} style={styles.closeIcon2} />
+          </TouchableOpacity>
+          <Text style={styles.coinsModalText}>
+            {t('Kalan Fal Hakkınız')}: {userData?.REMAINING_COINS}
+          </Text>
+        </View>
+      </Modal>
+      {/*
+
+      Topic for another time - maybe in v2.0 (?)
+
+      */}
+      {/*
+        <Modal
+          isVisible={thirdModalVisible}
+          onSwipeComplete={() => setThirdModalVisible(false)}
+          swipeDirection="down"
+          style={styles.modal}>
+          <View style={styles.modalContent}>
+            <TouchableOpacity
+              style={styles.closeButton2}
+              onPress={() => setThirdModalVisible(false)}>
+              <Image source={closeIcon} style={styles.closeIcon2} />
+            </TouchableOpacity>
+            <Text style={styles.thirdModalTitle}>Doğum Bilgileriniz</Text>
+            <TouchableOpacity
+              style={styles.dateTimeButton}
+              onPress={() => setShowDatePicker(true)}>
+              <Text style={styles.dateTimeButtonText}>
+                Doğum Tarihi: {birthDate.toLocaleDateString()}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.dateTimeButton}
+              onPress={() => setShowTimePicker(true)}>
+              <Text style={styles.dateTimeButtonText}>
+                Doğum Saati:{' '}
+                {birthTime.toLocaleTimeString([], {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.expandedButton}
+              onPress={() => {
+                setThirdModalVisible(false);
+                // Navigate to daily horoscope screen or perform action
+                console.log('Navigate to daily horoscope');
+              }}>
+              <Image source={horoscopeIcon} style={styles.expandedButtonIcon} />
+              <Text style={styles.expandedButtonText}>Burç Yorumunu Gör</Text>
+            </TouchableOpacity>
+          </View>
+        </Modal>
+
+        {showDatePicker && (
+          <DateTimePicker
+            value={birthDate}
+            mode="date"
+            display="default"
+            onChange={(
+              event: DateTimePickerEvent,
+              selectedDate: Date | undefined,
+            ) => {
+              handleDateChange(event, selectedDate);
+            }}
+          />
+        )}
+        {showTimePicker && (
+          <DateTimePicker
+            value={birthTime}
+            mode="time"
+            is24Hour={true}
+            display="default"
+            onChange={(
+              event: DateTimePickerEvent,
+              selectedTime: Date | undefined,
+            ) => {
+              handleTimeChange(event, selectedTime);
+            }}
+          />
+        )}
+      */}
+
+      {/*
+
+Can't handle it. " ERROR  Test Banner ad failed to load: [Error: [googleMobileAds/error-code-no-fill] The ad request was successful, but no ad was returned due to lack of ad inventory.]"
+will handle it valla
+
+
+      Banner Ad Integration
+      <View style={styles.adContainer}>
+        <BannerAdComponent />
+      </View>*/}
     </LinearGradient>
   );
 };
@@ -288,8 +409,11 @@ const MainScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'flex-start', // Ensure everything is aligned at the top initially
+    justifyContent: 'flex-start',
     position: 'relative',
+  },
+  scrollViewContent: {
+    paddingBottom: 100,
   },
   header: {
     height: 250,
@@ -302,7 +426,7 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 3,
-    elevation: 5,
+    elevation: 2,
     zIndex: 1,
   },
   wheelButton: {
@@ -315,35 +439,27 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
   },
-  notificationButton: {
+  coinsButton: {
     position: 'absolute',
     top: 50,
     right: 20,
     padding: 5,
   },
-  notificationIcon: {
+  coinsIcon: {
     width: 30,
     height: 30,
   },
   grid: {
     flex: 1,
     width: '100%',
-    alignItems: 'center',  // Center the grid items horizontally
-    justifyContent: 'flex-start',  // Start from the top under the welcome text
-    marginTop: 20,  // Adjust as needed to move the grids closer to the welcomeText
-  },
-  contentContainer: {
-    marginTop: 60,
-    justifyContent: 'center',
-    paddingHorizontal: 20,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    marginTop: 20,
   },
   fortuneGridContainer: {
     marginVertical: 20,
     marginRight: 20,
     marginLeft: 20,
-  },
-  fortuneGrid: {
-    padding: 10,
   },
   fortuneItem: {
     backgroundColor: '#fcf4e4',
@@ -354,7 +470,7 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.2,
     shadowRadius: 3.84,
-    elevation: 3,
+    elevation: 2,
   },
   fortuneItemText: {
     fontSize: 18,
@@ -404,7 +520,40 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-    elevation: 5,
+    elevation: 2,
+    overflow: 'hidden',
+  },
+  comingSoonItem: {
+    opacity: 0.75,
+  },
+  blurOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
+  },
+  blurBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.75)',
+    backdropFilter: 'blur(8px)',
+  },
+  comingSoonText: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#000000',
+    textAlign: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    padding: 8,
+    borderRadius: 15,
+    zIndex: 2,
   },
   gridText: {
     fontSize: 24,
@@ -422,8 +571,8 @@ const styles = StyleSheet.create({
     fontFamily: 'Nunito-Black',
     textAlign: 'center',
     marginTop: 50,
-    zIndex: 1,  // Ensure it's on top
-    position: 'relative',  // Position relative to avoid overlap issues
+    zIndex: 1,
+    position: 'relative',
   },
   navBar: {
     flexDirection: 'row',
@@ -432,8 +581,8 @@ const styles = StyleSheet.create({
     width: '90%',
     paddingVertical: 15,
     position: 'absolute',
-    bottom: 20,
-    left: 25,
+    bottom: 50, // moved it up 70 to integrate admob - but not now
+    left: '5%',
     borderTopLeftRadius: 40,
     borderTopRightRadius: 40,
     borderBottomLeftRadius: 40,
@@ -442,7 +591,7 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: -2},
     shadowOpacity: 0.2,
     shadowRadius: 3,
-    elevation: 10,
+    elevation: 2,
   },
   navItem: {
     alignItems: 'center',
@@ -481,6 +630,13 @@ const styles = StyleSheet.create({
     height: 40,
     tintColor: '#fcf4e4',
   },
+  coinsModalText: {
+    color: '#fcf4e4',
+    textAlign: 'center',
+    fontFamily: 'Nunito-Black',
+    fontSize: 24,
+    marginBottom: 20,
+  },
   modalButton: {
     backgroundColor: '#fcf4e4',
     borderRadius: 30,
@@ -494,8 +650,8 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 3,
-    elevation: 5,
     flexDirection: 'row',
+    overflow: 'hidden',
   },
   modalIcon: {
     width: 24,
@@ -527,8 +683,74 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.3,
     shadowRadius: 3,
-    elevation: 5,
   },
+  thirdModalTitle: {
+    color: '#fcf4e4',
+    textAlign: 'center',
+    fontFamily: 'Nunito-Black',
+    fontSize: 24,
+    marginBottom: 20,
+  },
+  dateTimeButton: {
+    backgroundColor: '#fcf4e4',
+    borderRadius: 30,
+    padding: 15,
+    elevation: 2,
+    width: 350,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+  },
+  dateTimeButtonText: {
+    color: '#8a4412',
+    textAlign: 'center',
+    fontFamily: 'Nunito-Black',
+    fontSize: 18,
+  },
+  expandedButton: {
+    backgroundColor: '#fcf4e4',
+    borderRadius: 30,
+    padding: 15,
+    elevation: 2,
+    width: 350,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 20,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+  },
+  expandedButtonIcon: {
+    width: 24,
+    height: 24,
+    marginRight: 10,
+  },
+  expandedButtonText: {
+    color: '#8a4412',
+    textAlign: 'center',
+    fontFamily: 'Nunito-Black',
+    fontSize: 24,
+  },
+
+  /*
+
+Will fix it and im not gonna delete it bc position was perfect
+
+  adContainer: {
+    position: 'absolute',
+    bottom: 0, // Place the ad at the very bottom of the screen
+    width: '100%',
+    alignItems: 'center',
+  }
+
+  */
+
 });
 
 export default MainScreen;

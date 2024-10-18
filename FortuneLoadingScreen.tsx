@@ -10,6 +10,7 @@ import {
 import getFortuneText from './getFortuneText';
 import { getZodiacSign } from './zodiacUtils';
 import messaging from '@react-native-firebase/messaging';
+import { useTranslation } from 'react-i18next';
 
 const FortuneLoadingScreen = ({ navigation, route }) => {
   const { images, userData } = route.params;
@@ -17,6 +18,8 @@ const FortuneLoadingScreen = ({ navigation, route }) => {
   const [fortuneReady, setFortuneReady] = useState(false);
   const [fortuneText, setFortuneText] = useState('');
   const [fcmToken, setFcmToken] = useState('');
+  const { t } = useTranslation();
+  const [zodiacSign, setZodiacSign] = useState('');
 
   useEffect(() => {
     console.log('FortuneLoadingScreen received userData:', userData);
@@ -26,8 +29,9 @@ const FortuneLoadingScreen = ({ navigation, route }) => {
   const fetchFortune = async () => {
     try {
       console.log('User Data:', userData);
-      const zodiacSign = getZodiacSign(new Date(userData.birthday));
-      const prompt = 'Görselleri bir falcı gibi yorumla. Kullanıcının adı ${userData.name}, yaşı ${userData.age}, cinsiyeti ${userData.gender}, ilgi alanı ${userData.sexualInterest}, ilişki durumu ${userData.status}, falın amacı ${userData.intention}, ve burcu ${zodiacSign}. Samimi bir dil kullan ve kullanıcıların duymak isteyeceği şeyleri belirt. Yorumlamayı profesyonel yap ve genel olarak giriş, gelişme ve sonuç paragraflarından oluşsun istiyorum.';
+      const sign = getZodiacSign(new Date(userData.birthday));
+      setZodiacSign(sign);
+      const prompt = `Interpret the images like a fortune teller. The user's name is ${userData.name}, age ${userData.age}, gender ${userData.gender}, sexual interest ${userData.sexualInterest}, relationship status ${userData.status}, intention for the fortune ${userData.intention}, and zodiac sign ${sign}. Use a friendly tone and mention things the users would like to hear. Make the interpretation professional and generally consist of introduction, development, and conclusion paragraphs.`;
 
       const responseText = await getFortuneText(prompt);
       if (responseText) {
@@ -77,7 +81,7 @@ const FortuneLoadingScreen = ({ navigation, route }) => {
             <>
               <ActivityIndicator size="large" color="#88400d" />
               <Text style={styles.loadingText}>
-                Lütfen bekleyin, falınız hazırlanıyor... 🌟
+                {t('Lütfen bekleyin, falınız hazırlanıyor...')} 🌟
               </Text>
             </>
         ) : (
@@ -87,11 +91,11 @@ const FortuneLoadingScreen = ({ navigation, route }) => {
                   fortuneReady ? styles.buttonActive : styles.buttonDisabled,
                 ]}
                 onPress={() =>
-                    navigation.navigate('FortuneTellerViewScreen', { fortuneText, userData })
+                    navigation.navigate('FortuneTellerViewScreen', { fortuneText, userData: {...userData, zodiacSign} })
                 }
                 disabled={!fortuneReady}
             >
-              <Text style={styles.buttonText}>Falı Görüntüle! 🔮</Text>
+              <Text style={styles.buttonText}>{t('Falı Görüntüle!')} 🔮</Text>
             </TouchableOpacity>
         )}
       </View>
@@ -106,10 +110,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#fcf4e4',
   },
   image: {
-    width: 300, // Adjust the width as needed
-    height: 300, // Adjust the height as needed
-    resizeMode: 'contain', // Keep the aspect ratio
-    marginBottom: 20, // Spacing between the image and the loading indicator
+    width: 300,
+    height: 300,
+    resizeMode: 'contain',
+    marginBottom: 20,
   },
   loadingText: {
     fontSize: 20,
