@@ -19,6 +19,7 @@ const FortuneLoadingScreen = ({ navigation, route }) => {
   const [fortuneText, setFortuneText] = useState('');
   const [fcmToken, setFcmToken] = useState('');
   const { t } = useTranslation();
+  const [zodiacSign, setZodiacSign] = useState('');
 
   useEffect(() => {
     console.log('FortuneLoadingScreen received userData:', userData);
@@ -28,8 +29,9 @@ const FortuneLoadingScreen = ({ navigation, route }) => {
   const fetchFortune = async () => {
     try {
       console.log('User Data:', userData);
-      const zodiacSign = getZodiacSign(new Date(userData.birthday));
-      const prompt = `Interpret the images like a fortune teller. The user's name is ${userData.name}, age ${userData.age}, gender ${userData.gender}, sexual interest ${userData.sexualInterest}, relationship status ${userData.status}, intention for the fortune ${userData.intention}, and zodiac sign ${zodiacSign}. Use a friendly tone and mention things the users would like to hear. Make the interpretation professional and generally consist of introduction, development, and conclusion paragraphs.`;
+      const sign = getZodiacSign(new Date(userData.birthday));
+      setZodiacSign(sign);
+      const prompt = `Interpret the images like a fortune teller. The user's name is ${userData.name}, age ${userData.age}, gender ${userData.gender}, sexual interest ${userData.sexualInterest}, relationship status ${userData.status}, intention for the fortune ${userData.intention}, and zodiac sign ${sign}. Use a friendly tone and mention things the users would like to hear. Make the interpretation professional and generally consist of introduction, development, and conclusion paragraphs.`;
 
       const responseText = await getFortuneText(prompt);
       if (responseText) {

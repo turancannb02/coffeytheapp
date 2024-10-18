@@ -1,4 +1,4 @@
-import React, {useState, useCallback} from 'react';
+import React, {useState, useCallback, useEffect} from 'react';
 import {
   View,
   Text,
@@ -20,6 +20,7 @@ import {useNavigation} from '@react-navigation/native';
 import firestore from '@react-native-firebase/firestore';
 import {useUser} from './UserContext';
 import {useTranslation} from 'react-i18next';
+import { getZodiacSign } from './zodiacUtils';
 
 const {width} = Dimensions.get('window');
 
@@ -32,10 +33,16 @@ const CoffeeCupUploadScreen = ({route}) => {
   const [startX, setStartX] = useState(0);
   const { t } = useTranslation();
 
+  useEffect(() => {
+    console.log('Images state updated:', images);
+  }, [images]);
+
   const updateImageAtIndex = (imageUri: string, index: number) => {
+    console.log('Updating image at index:', index);
     const updatedImages = [...images];
     updatedImages[index] = imageUri;
     setImages(updatedImages);
+    console.log('Images updated:', updatedImages);
   };
 
   const handleImagePickerResponse = (
@@ -115,14 +122,19 @@ const CoffeeCupUploadScreen = ({route}) => {
           LAST_POSTED_FORTUNE: new Date().toISOString(),
         });
 
+        // Calculate zodiac sign
+        const zodiacSign = getZodiacSign(new Date(userData.birthday));
+
         // Update user data locally
-        setUserData(prevState => ({
-          ...prevState,
+        const updatedUserData = {
+          ...userData,
           REMAINING_COINS: updatedCoins,
-        }));
+          zodiacSign: zodiacSign
+        };
+        setUserData(updatedUserData);
 
         // Navigate to the loading screen
-        navigation.navigate('FortuneLoadingScreen', {images, userData});
+        navigation.navigate('FortuneLoadingScreen', {images, userData: updatedUserData});
       }
     } catch (error) {
       Alert.alert('Hata', 'Fal gönderilemedi. Lütfen tekrar deneyin.');
